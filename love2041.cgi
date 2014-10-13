@@ -1,10 +1,11 @@
 #!/usr/bin/python
 import cgi
 import cgitb; cgitb.enable()  # for troubleshooting
+import Cookie
 
 
 arguments=cgi.FieldStorage()
-
+page=arguments.getvalue("page")
 
 print "Content-type: text/html"
 print """
