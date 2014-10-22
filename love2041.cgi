@@ -17,7 +17,7 @@ if not page: page="login"
 
 
 if page in  pageList:
-    with open(pageList[page],'r') as file:
+    with open("templates/"+ pageList[page],'r') as file:
         html = file.read()
         print html
 else:
