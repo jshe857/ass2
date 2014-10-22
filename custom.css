@@ -1,0 +1,6 @@
+.button.glass {
+    color: white;
+    background: linear-gradient(rgba(255,255,255,0.2) 0%, rgba(246,246,246,0.11) 70%, rgba(237,237,237,0.1) 100%);
+    box-shadow: 6px 11px 36px 1px rgba(1,1,1,0.2);
+
+}

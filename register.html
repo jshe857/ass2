@@ -1,0 +1,25 @@
+<div style="text-align:center; padding-top:10%">      
+    <h1 style="display:inline-block;margin: 0 auto; font-family: 'Lobster', cursive; font-size:60px; color:#444">
+        Registration
+    </h1>
+    <form name="register" action="" method="post">
+        <div class="card" style="padding:60px; width:50%; margin:20px auto; border-radius:5px;">
+             <label style="background:#fdfdgd" class="item item-input">
+                 <input  type="email" name="email" ng-model="user.email"  placeholder="Email Address">
+            </label> 
+            <label style="background:#fdfdgd" class="item item-input">
+                <input  type="text" name="username" ng-model="user.name" placeholder="Username">
+            </label>
+            <label style="background:#fdfdfd" class="item item-input">
+                <input  type="password" name="password" ng-model="user.password"  placeholder="Password 8-16 Characters">
+            </label>
+            <label style="background:#fdfdfd" class="item item-input">
+                <input  type="password" name="confirm" ng-model="user.confirm"  placeholder="Confirm Password">
+            </label>
+        </div>
+    </div>
+    <button  class="button button-assertive glass" style="display:block; width:50%; margin:0 auto; border:0;  border-radius:5px">
+        Sign Me Up!
+    </button>
+</form>
+
