@@ -1,0 +1,2 @@
+angular.module('main', ['ionic'])
+
