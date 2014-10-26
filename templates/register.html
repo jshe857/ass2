@@ -2,24 +2,53 @@
     <h1 style="display:inline-block;margin: 0 auto; font-family: 'Lobster', cursive; font-size:60px; color:#444">
         Registration
     </h1>
-    <form name="register" action="" method="post">
-        <div class="card" style="padding:60px; width:50%; margin:20px auto; border-radius:5px;">
-             <label style="background:#fdfdgd" class="item item-input">
-                 <input  type="email" name="email" ng-model="user.email"  placeholder="Email Address">
-            </label> 
-            <label style="background:#fdfdgd" class="item item-input">
-                <input  type="text" name="username" ng-model="user.name" placeholder="Username">
+    <div class="card" style="padding:60px; width:50%; margin:20px auto 10 auto; border-radius:5px;">
+
+     <form name="register" novalidate>
+            <label class="item item-input">
+                <i
+                    class="icon placeholder-icon balanced"
+                    ng-class="register.name.$$vaild ? 'ion-checkmark-circled' : ''">
+                </i>
+
+                <input
+                name="name" type="text" ng-model="newUser.name" required 
+                placeholder="Name">
             </label>
-            <label style="background:#fdfdfd" class="item item-input">
-                <input  type="password" name="password" ng-model="user.password"  placeholder="Password 8-16 Characters">
+
+            <label class="item item-input">
+                <i class="icon placeholder-icon balanced"
+                    ng-class="register.email.$$valid ? 'ion-checkmark-circled' : ''">
+                </i>
+                <input name="email" type="email" ng-model="newUser.email" required
+                placeholder="Email">
             </label>
-            <label style="background:#fdfdfd" class="item item-input">
-                <input  type="password" name="confirm" ng-model="user.confirm"  placeholder="Confirm Password">
+
+            <label class="item item-input">
+
+                <i
+                    class="icon placeholder-icon balanced"
+                    ng-class="register.password.$$valid ? 'ion-checkmark-circled' : ''">
+                </i>
+                <input name="password" type="password" required
+                placeholder="Password 8-16 Characters" ng-model="newUser.pw"
+                password-valid>
             </label>
-        </div>
-    </div>
-    <button  class="button button-assertive glass" style="display:block; width:50%; margin:0 auto; border:0;  border-radius:5px">
-        Sign Me Up!
-    </button>
+
+            <label class="item item-input">
+
+                <i
+                    class="icon placeholder-icon balanced"
+                    ng-class="newUser.pwconfirm && newUser.pw == newUser.pwconfirm ? 'ion-checkmark-circled' : ''">
+                </i>
+                <input name="passwordconfirm" type="password" required
+                placeholder="Confirm Password" ng-model="newUser.pwconfirm">
+            </label>
+            <div class="assertive">$error</div>
+    </form>
+</div>    
+<button  class="button button-assertive glass" style="display:block; width:50%; margin:0 auto; border:0;  border-radius:5px">
+    Sign Me Up!
+</button>
 </form>
 
