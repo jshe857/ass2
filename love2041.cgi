@@ -38,7 +38,6 @@ def readDataFormat(fileHandle):
 #return true if user and pw combination is valid 
 def authenticate(user,pw):
     profile = users.get(user)
-    print (profile)
     if profile and profile["info"]["password"] == pw:
         return True
     return False
@@ -46,10 +45,7 @@ def authenticate(user,pw):
 def loginHandler():
     user = arguments.getvalue("username")
     pw = arguments.getvalue("password")
-    print "here!!!!"
-    print user
     if (user):
-        print "here i am!"
         if(authenticate(user,pw)):
            activeSess[user]=cookie["id"].value
            json.dump(activeSess,open("sessions","w"))
@@ -71,7 +67,6 @@ def navigationHandler(page):
     if page in pageHandler:
         page = pageHandler[page]()
         with open("templates/"+template[page],'r') as file:
-            print(template[page])
             html = Template(file.read()).substitute(pageVars)
     else:
         html="Error"
@@ -100,7 +95,7 @@ page=arguments.getvalue("page")
 #boiler plate html strings
 print "Content-type: text/html"
 print cookie
-print '\n<html>\n  <head>\n    <meta charset=\"UTF-8\">\n    <title>\n      Love 2041\n    </title>\n    <link rel=\"stylesheet\" href=\"ionic/css/ionic.min.css\">\n <link rel=\"stylesheet\" href=\"custom.css\">    <link href="http://fonts.googleapis.com/css?family=Lobster" rel="stylesheet" type="text/css">\n    <script src=\"ionic/js/ionic.bundle.js\"></script>\n <script src=\"custom1.js\"></script>\n </head>\n  <body ng-app="main" style=\"background:linear-gradient(#FF2A68,#FF5E3A); color:#444\">\n'
+print '\n<html>\n  <head>\n    <meta charset=\"UTF-8\">\n    <title>\n      Love 2041\n    </title>\n    <link rel=\"stylesheet\" href=\"ionic/css/ionic.min.css\">\n <link rel=\"stylesheet\" href=\"custom.css\">    <link href="http://fonts.googleapis.com/css?family=Lobster" rel="stylesheet" type="text/css">\n    <script src=\"ionic/js/ionic.bundle.js\"></script>\n <script src=\"custom.js\"></script>\n </head>\n  <body ng-app="main" style=\"background:linear-gradient(#FF2A68,#FF5E3A); color:#444\">\n'
 
 
 for folder in glob.glob(STUD_DIR+"*"):
