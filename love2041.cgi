@@ -36,12 +36,12 @@ def readDataFormat(fileHandle):
         x+=1
         tempStore = list()
         while (x < len(lines)) and (lines[x].startswith("\t")):
-            tempStore.append(lines[x].strip())
+            tempStore.append(lines[x].strip().replace("'","&39;").replace('"','&#quot;'))
             x+=1
-        if len(tempStore) == 1:
+        if key not in listKeys :
             data[key] = tempStore.pop()
         else:
-            data[key] = json.dumps(tempStore)
+            data[key] = tempStore
     data["gender"] = data["gender"][0].upper() + data["gender"][1:]
     if not data.get("profiletext"):data["profiletext"] = "About Me"
     try:
@@ -116,7 +116,7 @@ def detailHandler():
         pageVars["error"] = "No Such User"
         return browseHandler()
     with open("templates/detail.html","r") as detail:
-        pageVars["title"] = "Details"
+        pageVars["title"] = user["name"]
         pageVars["template"] = Template(detail.read()).safe_substitute(user)
     return "nav" 
 #handles navigation and page logic
@@ -151,6 +151,7 @@ with open("templates/card.html",'r') as card:
 pageVars = {"error":""}
 template={"login":"index.html","register":"register.html","nav":"nav.html"}
 pageHandler={"login":loginHandler,"register":registerHandler,"browse":browseHandler,"detail":detailHandler}
+listKeys = ["favourite_movies","favourite_books","courses","favourite_bands","favourite_TV_shows","favourite_hobbies"]
 if (os.environ.get("REQUEST_URI")):
     arguments=cgi.FieldStorage()
 else:

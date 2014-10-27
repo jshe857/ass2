@@ -1,6 +1,6 @@
 <div class="card" style="margin-bottom:0;padding:0">
     <img src="$avatar" height="180px" style="float:left; border:6px solid #F491AF; border-radius:50%; margin:20px">   
-    <a class="shadow" style="background:#E64274;color:white;font-family:Lobster;float:right; font-size:25px;padding:10px"><i class="ion ion-email" style="padding-right:5px; "></i>Message</a> 
+    <a href="?page=message&user=$username"class="shadow" style="background:#E64274;color:white;font-family:Lobster;float:right; font-size:25px;padding:10px"><i class="ion ion-email" style="padding-right:5px; "></i>Message</a> 
     <h2 style="font-size:30px">About Me:</h2>
     <p>$profiletext</p>
 </div>
@@ -31,44 +31,65 @@
 
         <div class="card list">
             <div class="item item-divider">
+                <i class="icon ion-ios7-football-outline"></i> Favourite Hobbies
+            </div>
+            <div class="item" ng-repeat="item in $favourite_hobbies">
+                {{item.replace("&39;","'")}}
+            </div>
+        </div>
+        <div class="card list">
+            <div class="item item-divider">
                 <i class="icon ion-android-book"></i> Favourite Books
             </div>
-            <div class="item" ng-repeat='item in $favourite_books'>
-                {{item}}
+            <div class="item" ng-repeat="item in $favourite_books">
+                {{item.replace("&39;","'")}}
             </div>
         </div>
         <div class="card list">
             <div class="item item-divider">
                 <i class="icon ion-ios7-film"></i> Favourite Movies
             </div>
-            <div class="item" ng-repeat='item in $favourite_movies'>
+            <div class="item" ng-repeat="item in $favourite_movies">
                 {{item}}
+                {{item.replace("&39;","'")}}
             </div>
         </div>
         <div class="card list">
             <div class="item item-divider">
                 <i class="icon ion-music-note"></i> Favourite Music
             </div>
-            <div class="item" ng-repeat='item in $favourite_bands'>
+            <div class="item" ng-repeat="item in $favourite_bands">
                 {{item}}
+                {{item.replace("&39;","'")}}
             </div>
         </div>
     </div> 
     <div class="col">
         <div class="card list">
             <div class="item item-divider">
+               Photos
+           </div>
+           <ion-slide-box style="height:300px">
+                <ion-slide style="text-align:center" ng-repeat="photo in $photos">
+                <img ng-src="{{photo}}">
+                </ion-slide>
+           </ion-slide-box>
+        </div>
+        <div class="card list">
+            <div class="item item-divider">
                 Courses
             </div>
-            <div class="item" ng-repeat='item in $courses'>
+            <div class="item" ng-repeat="item in $courses">
                 {{item}}
+                {{item.replace("&39;","'")}}
             </div>
         </div>
         <div class="card list">
             <div class="item item-divider">
                 <i class="icon ion-closed-captioning"></i> Favourite TV Shows
             </div>
-            <div class="item" ng-repeat='item in $favourite_TV_shows'>
-                {{item}}
+            <div class="item" ng-repeat="item in $favourite_TV_shows">
+                {{item.replace("&39;","'")}}
             </div>
         </div>
     </div>
