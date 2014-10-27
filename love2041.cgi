@@ -1,17 +1,21 @@
 #!/usr/bin/python
 import cgi
-import cgitb; cgitb.enable()  # for troubleshooting
+#import cgitb; cgitb.enable()  # for troubleshooting
 import Cookie,glob,re,os,uuid,json
 from string import Template
 import pprint
 import sys
 from datetime import date
+listKeys = ["favourite_movies","favourite_books","courses","favourite_bands","favourite_TV_shows","favourite_hobbies"]
+undisclosed = ["height","weight","birthdate","gender"]
+
 class MockArguments:
     def __init__(self,args):
         self.data = args
     def getvalue(self, key):
         return self.data.get(key)
-        
+
+
 
 
 #read in all user profiles and store as dict
@@ -24,6 +28,20 @@ def readUserProfile(username):
         profile.update(readDataFormat(info))
     with open(dir+"preferences.txt","r") as pref:
         profile["pref"] = readDataFormat(pref)
+    profile["gender"] = profile["gender"][0].upper() + profile["gender"][1:]
+    
+    for key in undisclosed:
+        if key not in profile:profile[key] = "Undisclosed"
+
+    if "profiletext" not in profile:profile["profiletext"] = "About Me";
+    try:
+        datestr = profile["birthdate"].split("/")
+        (year,month,day) = map(int,datestr)
+        born = date(year,month,day)
+        today = date.today()
+        profile["age"] = today.year - born.year - ((today.month, today.day) < (born.month, born.day)) 
+    except:
+        profile["age"] = "Undisclosed"
     return profile
 
 #parse data format of txt files and convert to dict
@@ -42,16 +60,6 @@ def readDataFormat(fileHandle):
             data[key] = tempStore.pop()
         else:
             data[key] = tempStore
-    data["gender"] = data["gender"][0].upper() + data["gender"][1:]
-    if not data.get("profiletext"):data["profiletext"] = "About Me"
-    try:
-        datestr = data["birthdate"].split("/")
-        (year,month,day) = map(int,datestr)
-        born = date(year,month,day)
-        today = date.today()
-        data["age"] = today.year - born.year - ((today.month, today.day) < (born.month, born.day)) 
-    except:
-        data["age"] = "Undisclosed"
     return data
 
 #return true if user and pw combination is valid 
@@ -66,9 +74,9 @@ def loginHandler():
     pw = arguments.getvalue("password")
     if (user):
         if(authenticate(user,pw)):
-           activeSess[user]=cookie["id"].value
-           json.dump(activeSess,open("sessions","w"))
-           return BrowseHandler()
+            activeSess[user]=cookie["id"].value
+            json.dump(activeSess,open("sessions","w"))
+            return BrowseHandler()
         else:
            pageVars["user"] = user
            pageVars["error"]="Invalid username or password"
@@ -85,7 +93,7 @@ def browseHandler():
         rng = int(rng)
     except:
         rng = 0
-    
+
     start = rng*15
     end = start+15 if start + 15 < len(userKeys) else len(userKeys)
     template = ""
@@ -151,7 +159,6 @@ with open("templates/card.html",'r') as card:
 pageVars = {"error":""}
 template={"login":"index.html","register":"register.html","nav":"nav.html"}
 pageHandler={"login":loginHandler,"register":registerHandler,"browse":browseHandler,"detail":detailHandler}
-listKeys = ["favourite_movies","favourite_books","courses","favourite_bands","favourite_TV_shows","favourite_hobbies"]
 if (os.environ.get("REQUEST_URI")):
     arguments=cgi.FieldStorage()
 else:

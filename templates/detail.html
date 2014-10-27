@@ -7,7 +7,7 @@
 <div style="margin:0">
 </div>
 <div class="row" >
-    <div class="col">
+    <div class="col-67">
         <div class="card list">
             <div class="item item-divider">
                 About
@@ -50,7 +50,6 @@
                 <i class="icon ion-ios7-film"></i> Favourite Movies
             </div>
             <div class="item" ng-repeat="item in $favourite_movies">
-                {{item}}
                 {{item.replace("&39;","'")}}
             </div>
         </div>
@@ -59,7 +58,6 @@
                 <i class="icon ion-music-note"></i> Favourite Music
             </div>
             <div class="item" ng-repeat="item in $favourite_bands">
-                {{item}}
                 {{item.replace("&39;","'")}}
             </div>
         </div>
@@ -70,8 +68,8 @@
                Photos
            </div>
            <ion-slide-box style="height:300px">
-                <ion-slide style="text-align:center" ng-repeat="photo in $photos">
-                <img ng-src="{{photo}}">
+                <ion-slide style="text-align:center; width:80px" ng-repeat="photo in $photos">
+                <img ng-src="{{photo}}" style="margin: 0 auto">
                 </ion-slide>
            </ion-slide-box>
         </div>
@@ -80,7 +78,6 @@
                 Courses
             </div>
             <div class="item" ng-repeat="item in $courses">
-                {{item}}
                 {{item.replace("&39;","'")}}
             </div>
         </div>
