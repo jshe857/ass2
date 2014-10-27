@@ -1,5 +1,5 @@
 .glass {
-    color: white !important;
+    color: white;
     background: linear-gradient(rgba(255,255,255,0.2)0%, rgba(246,246,246,0.17) 70%, rgba(237,237,237,0.1) 100%) !important;
     box-shadow: 2px 3px 2px 3px rgba(1,1,1,0.2) !important;
 
@@ -21,4 +21,11 @@ h2 {
 }
 .spacer {
     padding:15px;
+}
+a {
+    
+    text-decoration:none;
+}
+.shadow {
+    box-shadow: 2px 3px 2px 3px rgba(1,1,1,0.2) !important;
 }

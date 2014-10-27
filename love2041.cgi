@@ -4,7 +4,16 @@ import cgitb; cgitb.enable()  # for troubleshooting
 import Cookie,glob,re,os,uuid,json
 from string import Template
 import pprint
+import sys
 from datetime import date
+class MockArguments:
+    def __init__(self,args):
+        self.data = args
+    def getvalue(self, key):
+        return self.data.get(key)
+        
+
+
 #read in all user profiles and store as dict
 def readUserProfile(username):
     dir = STUD_DIR+username+"/"
@@ -25,21 +34,22 @@ def readDataFormat(fileHandle):
     while (x < len(lines)):
         key = lines[x].strip()[:-1]
         x+=1
-        tempStore = set()
+        tempStore = list()
         while (x < len(lines)) and (lines[x].startswith("\t")):
-            tempStore.add(lines[x].strip())
+            tempStore.append(lines[x].strip())
             x+=1
         if len(tempStore) == 1:
             data[key] = tempStore.pop()
         else:
-            data[key] = tempStore
+            data[key] = json.dumps(tempStore)
     data["gender"] = data["gender"][0].upper() + data["gender"][1:]
+    if not data.get("profiletext"):data["profiletext"] = "About Me"
     try:
         datestr = data["birthdate"].split("/")
         (year,month,day) = map(int,datestr)
         born = date(year,month,day)
         today = date.today()
-        data["age"] = today.year - born.year - ((today.month, today.day) < (born.month, born.day))
+        data["age"] = today.year - born.year - ((today.month, today.day) < (born.month, born.day)) 
     except:
         data["age"] = "Undisclosed"
     return data
@@ -58,7 +68,7 @@ def loginHandler():
         if(authenticate(user,pw)):
            activeSess[user]=cookie["id"].value
            json.dump(activeSess,open("sessions","w"))
-           return homeHandler()
+           return BrowseHandler()
         else:
            pageVars["user"] = user
            pageVars["error"]="Invalid username or password"
@@ -69,22 +79,49 @@ def registerHandler():
     user=arguments.getvalue("username")
     pw = arguments.getvalue("password")
     return "register"
-def homeHandler():
+def browseHandler():
     rng = arguments.getvalue("range")
-    if not rng: rng = 0;
+    try:
+        rng = int(rng)
+    except:
+        rng = 0
+    
     start = rng*15
-    end = start+15
+    end = start+15 if start + 15 < len(userKeys) else len(userKeys)
     template = ""
     for x in range(start,end):
         if x > len(userKeys):break;
         key = userKeys[x]
-        template += Template(cardTemplate).safe_substitute(users[key])
+        users[key]["url"] = "?page=detail&user="+key
+        template += Template(cardTemplate).safe_substitute(users[key]) 
+    nextrng = str(rng +1) if rng<len(userKeys) else str(rng)
+    prevrng = str(rng-1) if rng>1 else str(rng)
+    template += '''
+    <div style="padding:10 120; width:100%; height:10%">
+    <a class="button glass" href="?page=browse&range='''+prevrng +'''" style="float:left; width:25%">
+    <i class="icon ion-chevron-left"></i>&nbsp;Prev
+    </a>
+    <a class="button glass" href="?page=browse&range='''+nextrng +'''" style="float:right; width:25%">
+    Next&nbsp;<i class="icon ion-chevron-right"></i>
+    </a>
+    </div>
+    '''
     pageVars["template"] = template
-
+    pageVars["title"] = "Browse"
     return "nav"
+def detailHandler():
+    try:
+        user=users[arguments.getvalue("user")]
+    except:
+        pageVars["error"] = "No Such User"
+        return browseHandler()
+    with open("templates/detail.html","r") as detail:
+        pageVars["title"] = "Details"
+        pageVars["template"] = Template(detail.read()).safe_substitute(user)
+    return "nav" 
 #handles navigation and page logic
 def navigationHandler(page):
-    if not page:page="home";
+    if not page:page="browse";
 
     if page in pageHandler:
         page = pageHandler[page]()
@@ -112,9 +149,16 @@ cardTemplate = ""
 with open("templates/card.html",'r') as card:
     cardTemplate = card.read()
 pageVars = {"error":""}
-template={"login":"index.html","register":"register.html","home":"home.html","nav":"nav.html"}
-pageHandler={"login":loginHandler,"register":registerHandler,"home":homeHandler}
-arguments=cgi.FieldStorage()
+template={"login":"index.html","register":"register.html","nav":"nav.html"}
+pageHandler={"login":loginHandler,"register":registerHandler,"browse":browseHandler,"detail":detailHandler}
+if (os.environ.get("REQUEST_URI")):
+    arguments=cgi.FieldStorage()
+else:
+    data = {}
+    for arg in sys.stdin:
+        pair = arg.strip().split(" ")
+        data[pair[0]] = pair[1]
+    arguments=MockArguments(data)       
 page=arguments.getvalue("page")
 userKeys=[]
 

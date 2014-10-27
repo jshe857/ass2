@@ -1,0 +1,75 @@
+<div class="card" style="margin-bottom:0;padding:0">
+    <img src="$avatar" height="180px" style="float:left; border:6px solid #F491AF; border-radius:50%; margin:20px">   
+    <a class="shadow" style="background:#E64274;color:white;font-family:Lobster;float:right; font-size:25px;padding:10px"><i class="ion ion-email" style="padding-right:5px; "></i>Message</a> 
+    <h2 style="font-size:30px">About Me:</h2>
+    <p>$profiletext</p>
+</div>
+<div style="margin:0">
+</div>
+<div class="row" >
+    <div class="col">
+        <div class="card list">
+            <div class="item item-divider">
+                About
+            </div>
+            <div class="item">
+                <div style="float:left"><b>Gender:</b></div><div style="float:right">$gender</div>
+            </div>
+            <div class="item">
+                <div style="float:left"><b>Height:</b></div><div style="float:right">$height</div>
+            </div>
+            <div class="item">
+                <div style="float:left"><b>Weight:</b></div><div style="float:right">$weight</div>
+            </div>
+            <div class="item">
+                <div style="float:left"><b>Birthdate:</b></div><div style="float:right">$birthdate</div>
+            </div>
+            <div class="item">
+                <div style="float:left"><b>Degree:</b></div><div style="float:right">$degree</div>
+            </div>
+        </div>
+
+        <div class="card list">
+            <div class="item item-divider">
+                <i class="icon ion-android-book"></i> Favourite Books
+            </div>
+            <div class="item" ng-repeat='item in $favourite_books'>
+                {{item}}
+            </div>
+        </div>
+        <div class="card list">
+            <div class="item item-divider">
+                <i class="icon ion-ios7-film"></i> Favourite Movies
+            </div>
+            <div class="item" ng-repeat='item in $favourite_movies'>
+                {{item}}
+            </div>
+        </div>
+        <div class="card list">
+            <div class="item item-divider">
+                <i class="icon ion-music-note"></i> Favourite Music
+            </div>
+            <div class="item" ng-repeat='item in $favourite_bands'>
+                {{item}}
+            </div>
+        </div>
+    </div> 
+    <div class="col">
+        <div class="card list">
+            <div class="item item-divider">
+                Courses
+            </div>
+            <div class="item" ng-repeat='item in $courses'>
+                {{item}}
+            </div>
+        </div>
+        <div class="card list">
+            <div class="item item-divider">
+                <i class="icon ion-closed-captioning"></i> Favourite TV Shows
+            </div>
+            <div class="item" ng-repeat='item in $favourite_TV_shows'>
+                {{item}}
+            </div>
+        </div>
+    </div>
+</div>

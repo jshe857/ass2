@@ -1,29 +1,42 @@
 <ion-side-menus style="background:rgba(1,1,1,0)">
 <!-- Center content -->
 <ion-side-menu-content style="background:rgba(1,1,1,0)">
-   <ion-content>
-   $template
-   </ion-content>
+<ion-header-bar style="border:0; background:rgba(1,1,1,0.1)"><h1 style="color:white; font-size:30px"class="title">$title</h1></ion-header-bar>
+<ion-content>
+<div ng-if="'$error'.length" class="card" style="text-align:center; margin:10 80; background:rgba(255,255,255,0.2)"><i class="icon ion-alert-circled" style="font-size:30px"></i><br>$error</div>
+$template
+</ion-content>
 </ion-side-menu-content>
 
 <!-- Left menu -->
 <ion-side-menu expose-aside-when="large" side="left" style="background:rgba(1,1,1,0.1)">
 
 <div class="list card" style="padding:20px; height:90%; margin:40px 15px">    
-<h1 style="text-align:center;border-bottom:4px solid #444; font-family: 'Lobster',cursive; color:#444; background:white; padding:10; margin:0">Navigation</h1>
-    <div href="?page=browse" class="card" style="padding:8px 30px">
-        <h2><i class="icon ion-planet" style="font-size:24;"></i>&nbsp;Browse</h2>
-    </div>
-    <div href="?page=search" class="card" style="padding:8px 30px">
-        <h2><i class="icon ion-ios7-search-strong" style="font-size:24;"></i>&nbsp;Search</h2>
-    </div>
-    <div href="?page=matches" class="card" style="padding:8px 30px">
-        <h2><i class="icon ion-heart" style="font-size:24;"></i>&nbsp;Matches</h2>
-    </div>
-     <div href="?page=logout" class="card" style="padding:8px 30px">
-        <h2><i class="icon ion-log-out" style="font-size:24;"></i>&nbsp;Logout</h2>
-    </div>
+    <h1 style="text-align:center;border-bottom:4px solid #444; font-family: 'Lobster',cursive; color:#444; background:white; padding:10; margin:0">Navigation</h1>
+    <a href="?page=browse"><div class="card" style="padding:8px 30px">
+            <h2><i class="icon ion-planet" style="font-size:24;"></i>&nbsp;Browse</h2>
+        </div>
+    </a>
+    <a href="?page=search"><div class="card" style="padding:8px 30px">
+            <h2><i class="icon ion-ios7-search-strong" style="font-size:24;"></i>&nbsp;Search</h2>
+        </div>
+    </a>
+    <a href="?page=matches"> <div class="card" style="padding:8px 30px">
+            <h2><i class="icon ion-heart" style="font-size:24;"></i>&nbsp;Matches</h2>
+        </div>
+    </a>
+    <a href="?page=logout"><div class="card" style="padding:8px 30px">
+            <h2><i class="icon ion-log-out" style="font-size:24;"></i>&nbsp;Logout</h2>
+        </div>
+    </a>
+    <a href="?page=edit"><div class="card" style="padding:8px 30px">
+            <h2><i class="icon ion-edit" style="font-size:24;"></i>&nbsp;Profile</h2>
+        </div>
+    </a>
+    <a href="?page=logout"><div class="card" style="padding:8px 30px">
+            <h2><i class="icon ion-log-out" style="font-size:24;"></i>&nbsp;Logout</h2>
+        </div>
+    </a>
+    </ion-side-menu>
 
-</ion-side-menu>
-
-</ion-side-menus>
+    </ion-side-menus>
