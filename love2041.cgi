@@ -71,13 +71,25 @@ def authenticate(user,pw):
         return True
     return False
 
+#Page Handlers Here
+def logoutHandler():
+    try:
+        del activeSess[cookie["id"].value]
+        json.dump(activeSess,open("sessions","w"))
+    except:
+        print ("No Active Session For Cookie")
+    return loginHandler("login")
 def loginHandler():
     user = arguments.getvalue("username")
     pw = arguments.getvalue("password")
     if (user):
         if(authenticate(user,pw)):
-            activeSess[user]=cookie["id"].value
+            for cookieid, username in activeSess.items():
+                if username == user:
+                    del activeSess[cookieid]
+            activeSess[cookie["id"].value]=user
             json.dump(activeSess,open("sessions","w"))
+            pageVars["currUser"] = user
             return browseHandler()
         else:
            pageVars["user"] = user
@@ -170,15 +182,19 @@ def searchHandler():
     pageVars["template"]+=searchbox
     return listHandler()
 #handles navigation and page logic
-def navigationHandler(page):
-    if not page:page="browse";
+def navHandler(page):
+    currUser = activeSess.get(cookie["id"].value)
+    if currUser:
+        pageVars["currUser"] = currUser
+        if (not page):
+            page="browse";
+    elif page != "register":
+        page="login"
 
     if page in pageHandler:
         page = pageHandler[page]()
         with open("templates/"+template[page],'r') as file:
             html = Template(file.read()).safe_substitute(pageVars)
-    else:
-        html="Error"
     return html
 
 #read in cookie info
@@ -200,7 +216,7 @@ with open("templates/card.html",'r') as card:
     cardTemplate = card.read()
 pageVars = {"template":"","error":"","currUser":""}
 template={"login":"index.html","register":"register.html","nav":"nav.html"}
-pageHandler={"search":searchHandler, "login":loginHandler,"register":registerHandler,"browse":browseHandler,"detail":detailHandler}
+pageHandler={"search":searchHandler, "login":loginHandler,"register":registerHandler,"browse":browseHandler,"detail":detailHandler,"logout":logoutHandler}
 if (os.environ.get("REQUEST_URI")):
     arguments=cgi.FieldStorage()
 else:
@@ -222,7 +238,7 @@ for folder in glob.glob(STUD_DIR+"*"):
     users[username] = readUserProfile(username)
     userKeys = sorted(users.keys())
 
-html = navigationHandler(page)
+html = navHandler(page)
 
 print html
 
