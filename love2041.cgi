@@ -187,6 +187,7 @@ def searchHandler():
     return listHandler()
 #handles navigation and page logic
 def navHandler(page):
+    if page not in pageHandler: page = None;
     currUser = activeSess.get(cookie["id"].value)
     if currUser:
         pageVars["currUser"] = currUser
@@ -195,10 +196,9 @@ def navHandler(page):
     elif page != "register":
         page="login"
 
-    if page in pageHandler:
-        page = pageHandler[page]()
-        with open("templates/"+template[page],'r') as file:
-            html = Template(file.read()).safe_substitute(pageVars)
+    page = pageHandler[page]()
+    with open("templates/"+template[page],'r') as file:
+        html = Template(file.read()).safe_substitute(pageVars)
     return html
 
 #read in cookie info
@@ -220,7 +220,7 @@ with open("templates/card.html",'r') as card:
     cardTemplate = card.read()
 pageVars = {"template":"","error":"","currUser":""}
 template={"login":"index.html","register":"register.html","nav":"nav.html"}
-pageHandler={"search":searchHandler, "login":loginHandler,"register":registerHandler,"browse":browseHandler,"detail":detailHandler,"logout":logoutHandler}
+pageHandler={"Match:" "search":searchHandler, "login":loginHandler,"register":registerHandler,"browse":browseHandler,"detail":detailHandler,"logout":logoutHandler}
 if (os.environ.get("REQUEST_URI")):
     arguments=cgi.FieldStorage()
 else:
