@@ -45,9 +45,14 @@ def readUserProfile(username):
             year = temp
         born = date(year,month,day)
         today = date.today()
-        profile["age"] = today.year - born.year - ((today.month, today.day) < (born.month, born.day)) 
+        profile["age"] = today.year - born.year - ((today.month, today.day) < (born.month, born.day))
+        if profile["age"] < 0:
+            profile["age"] = "Undisclosed"
     except:
         profile["age"] = "Undisclosed"
+    profile["match"] = profile["age"]
+
+
     return profile
 
 #parse data format of txt files and convert to dict
@@ -155,8 +160,14 @@ def detailHandler():
             p1 = Popen(["mail","-s" ,subject,to],stdin=PIPE,stdout=error,stderr=error)
             p1.communicate(input=message)
     return "nav"
+
 def browseHandler():
-    pageVars["template"]+='<form action="love2041.cgi?page=browse" method="get">'
+    pageVars["template"]+='<form action="love2041.cgi?page=browse" method="post">'
+    return listHandler()
+def matchHandler():
+    pageVars["template"]+= '<form action="love2041.cgi?page=match" method="post">'
+    global userKeys
+    userKeys = sorted(userKeys,key=lambda key: users[key]["match"]) 
     return listHandler()
 def searchHandler():
     searchString = arguments.getvalue("searchStore")
@@ -220,7 +231,7 @@ with open("templates/card.html",'r') as card:
     cardTemplate = card.read()
 pageVars = {"template":"","error":"","currUser":""}
 template={"login":"index.html","register":"register.html","nav":"nav.html"}
-pageHandler={"Match:" "search":searchHandler, "login":loginHandler,"register":registerHandler,"browse":browseHandler,"detail":detailHandler,"logout":logoutHandler}
+pageHandler={"match":matchHandler, "search":searchHandler, "login":loginHandler,"register":registerHandler,"browse":browseHandler,"detail":detailHandler,"logout":logoutHandler}
 if (os.environ.get("REQUEST_URI")):
     arguments=cgi.FieldStorage()
 else:
