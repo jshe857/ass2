@@ -19,6 +19,9 @@ h2 {
     font-weight:600;
     font-family: 'Lobster', cursive;
 }
+.item h2 {
+    font-size:24px !important
+}
 .spacer {
     padding:15px;
 }

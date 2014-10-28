@@ -39,6 +39,10 @@ def readUserProfile(username):
     try:
         datestr = profile["birthdate"].split("/")
         (year,month,day) = map(int,datestr)
+        if day > 31:
+            temp = day
+            day = year
+            year = temp
         born = date(year,month,day)
         today = date.today()
         profile["age"] = today.year - born.year - ((today.month, today.day) < (born.month, born.day)) 
@@ -78,7 +82,7 @@ def logoutHandler():
         json.dump(activeSess,open("sessions","w"))
     except:
         print ("No Active Session For Cookie")
-    return loginHandler("login")
+    return loginHandler()
 def loginHandler():
     user = arguments.getvalue("username")
     pw = arguments.getvalue("password")
@@ -141,7 +145,7 @@ def detailHandler():
         pageVars["error"] = "No Such User"
         return browseHandler()
     with open("templates/detail.html","r") as detail:
-        pageVars["title"] = user["name"]
+        pageVars["title"] = user["username"]
         pageVars["template"] += Template(detail.read()).safe_substitute(user)
     message = arguments.getvalue("message")
     if message:
@@ -170,13 +174,13 @@ def searchHandler():
     
     searchbox='''
     <form action="love2041.cgi?page=search" method="post">
-    <div style="margin-left:80; margin-right:80" class="card item-input-inset">
+    <div style="margin-left:90; margin-right:90" class="card item-input-inset">
       <label class="item-input-wrapper">
           <i class="icon ion-ios7-search placeholder-icon"></i>
           <input type="search" name="search" placeholder="Search" value="{0}">
       </label>
       <input type="hidden" name="searchStore" value="{0}">
-      <input type="submit" name="action" value="Search" class="button">
+      <input type="submit" name="action" value="Search" class="button button-light button-clear">
     </div>
     '''.format(searchString)
     pageVars["template"]+=searchbox
