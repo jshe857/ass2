@@ -1,6 +1,18 @@
-<div class="card" style="margin-bottom:0;padding:0">
+<script>
+module.controller('PopupCtrl',function($scope, $ionicPopup, $timeout) {
+    $scope.showPopup =function() {
+        var popup = $ionicPopup.show({
+        template: '<form action="love2041.cgi?page=detail&user=$username" method="post"><textarea rows="5" name="message"></textarea><input class="button button-assertive button-block" type="submit" style="background:#E64274"></form>',
+        buttons:[{text:"Cancel",type:"moveUp"}], 
+        title: 'Send A Message!',
+        })
+    }
+});
+</script>
+
+<div ng-controller="PopupCtrl" class="card" style="margin-bottom:0;padding:0">
     <img src="$avatar" height="180px" style="float:left; border:6px solid #F491AF; border-radius:50%; margin:20px">   
-    <a href="?page=message&user=$username"class="shadow" style="background:#E64274;color:white;font-family:Lobster;float:right; font-size:25px;padding:10px"><i class="ion ion-email" style="padding-right:5px; "></i>Message</a> 
+    <a ng-click="showPopup()" class="shadow" style="background:#E64274;color:white;font-family:Lobster;float:right; font-size:25px;padding:10px"><i class="ion ion-email" style="padding-right:5px; "></i>Message</a> 
     <h2 style="font-size:30px">About Me:</h2>
     <p>$profiletext</p>
 </div>

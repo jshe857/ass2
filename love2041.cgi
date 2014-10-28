@@ -1,4 +1,5 @@
 #!/usr/bin/python
+
 import cgi
 #import cgitb; cgitb.enable()  # for troubleshooting
 import Cookie,glob,re,os,uuid,json
@@ -6,9 +7,10 @@ from string import Template
 import pprint
 import sys
 from datetime import date
+from subprocess import Popen,STDOUT,PIPE
 listKeys = ["favourite_movies","favourite_books","courses","favourite_bands","favourite_TV_shows","favourite_hobbies"]
 undisclosed = ["height","weight","birthdate","gender"]
-
+userKeys=[]
 class MockArguments:
     def __init__(self,args):
         self.data = args
@@ -65,7 +67,7 @@ def readDataFormat(fileHandle):
 #return true if user and pw combination is valid 
 def authenticate(user,pw):
     profile = users.get(user)
-    if profile and profile["info"]["password"] == pw:
+    if profile and profile["password"] == pw:
         return True
     return False
 
@@ -76,7 +78,7 @@ def loginHandler():
         if(authenticate(user,pw)):
             activeSess[user]=cookie["id"].value
             json.dump(activeSess,open("sessions","w"))
-            return BrowseHandler()
+            return browseHandler()
         else:
            pageVars["user"] = user
            pageVars["error"]="Invalid username or password"
@@ -87,34 +89,37 @@ def registerHandler():
     user=arguments.getvalue("username")
     pw = arguments.getvalue("password")
     return "register"
-def browseHandler():
+def listHandler():
     rng = arguments.getvalue("range")
     try:
         rng = int(rng)
     except:
-        rng = 0
-
+        rng =0
+    if arguments.getvalue("action") == "Next":rng+=1;
+    if arguments.getvalue("action") == "Prev":rng-=1;
     start = rng*15
     end = start+15 if start + 15 < len(userKeys) else len(userKeys)
     template = ""
     for x in range(start,end):
-        if x > len(userKeys):break;
+        if x > len(userKeys) or x < 0:break;
         key = userKeys[x]
         users[key]["url"] = "?page=detail&user="+key
         template += Template(cardTemplate).safe_substitute(users[key]) 
-    nextrng = str(rng +1) if rng<len(userKeys) else str(rng)
-    prevrng = str(rng-1) if rng>1 else str(rng)
+    
+    nextrng = str(rng +1) if end<len(userKeys) else str(rng)
+    prevrng = str(rng-1) if start>0 else str(rng)
+    nextdis = "" if end <len(userKeys) else "disabled"
+    prevdis = "" if start >0 else "disabled"
     template += '''
-    <div style="padding:10 120; width:100%; height:10%">
-    <a class="button glass" href="?page=browse&range='''+prevrng +'''" style="float:left; width:25%">
-    <i class="icon ion-chevron-left"></i>&nbsp;Prev
-    </a>
-    <a class="button glass" href="?page=browse&range='''+nextrng +'''" style="float:right; width:25%">
-    Next&nbsp;<i class="icon ion-chevron-right"></i>
-    </a>
+    <div style="text-align:center;font-size:28px; padding:10 120; width:100%; height:10%">
+    <input type="hidden" value={0} name="range">
+    <input type="submit" name="action" value="Prev"class="button glass" {1}  style="float:left; width:25%">
+    Showing Results: {3} - {4}
+    <input type="submit" name="action" value="Next"class="button glass" {2} style="float:right; width:25%">
     </div>
-    '''
-    pageVars["template"] = template
+    </form>
+    '''.format(rng,prevdis,nextdis, start+1, end)
+    pageVars["template"]+= template
     pageVars["title"] = "Browse"
     return "nav"
 def detailHandler():
@@ -125,8 +130,45 @@ def detailHandler():
         return browseHandler()
     with open("templates/detail.html","r") as detail:
         pageVars["title"] = user["name"]
-        pageVars["template"] = Template(detail.read()).safe_substitute(user)
-    return "nav" 
+        pageVars["template"] += Template(detail.read()).safe_substitute(user)
+    message = arguments.getvalue("message")
+    if message:
+        subject="LOVE2041:"+pageVars["currUser"] +"Sent You A Message" 
+        to=user["email"]
+        with open("error","w") as error:
+            p1 = Popen(["mail","-s" ,subject,to],stdin=PIPE,stdout=error,stderr=error)
+            p1.communicate(input=message)
+    return "nav"
+def browseHandler():
+    pageVars["template"]+='<form action="love2041.cgi?page=browse" method="get">'
+    return listHandler()
+def searchHandler():
+    searchString = arguments.getvalue("searchStore")
+    if not searchString: searchString=""
+    if arguments.getvalue("action") == "Search":
+        arguments["range"].value = 0
+        searchString=arguments.getvalue("search")
+        global userKeys
+        if searchString:
+            tempStore = []
+            for key in userKeys:
+                if searchString in key:
+                    tempStore.append(key)
+            userKeys = tempStore
+    
+    searchbox='''
+    <form action="love2041.cgi?page=search" method="post">
+    <div style="margin-left:80; margin-right:80" class="card item-input-inset">
+      <label class="item-input-wrapper">
+          <i class="icon ion-ios7-search placeholder-icon"></i>
+          <input type="search" name="search" placeholder="Search" value="{0}">
+      </label>
+      <input type="hidden" name="searchStore" value="{0}">
+      <input type="submit" name="action" value="Search" class="button">
+    </div>
+    '''.format(searchString)
+    pageVars["template"]+=searchbox
+    return listHandler()
 #handles navigation and page logic
 def navigationHandler(page):
     if not page:page="browse";
@@ -156,9 +198,9 @@ users ={}
 cardTemplate = "" 
 with open("templates/card.html",'r') as card:
     cardTemplate = card.read()
-pageVars = {"error":""}
+pageVars = {"template":"","error":"","currUser":""}
 template={"login":"index.html","register":"register.html","nav":"nav.html"}
-pageHandler={"login":loginHandler,"register":registerHandler,"browse":browseHandler,"detail":detailHandler}
+pageHandler={"search":searchHandler, "login":loginHandler,"register":registerHandler,"browse":browseHandler,"detail":detailHandler}
 if (os.environ.get("REQUEST_URI")):
     arguments=cgi.FieldStorage()
 else:
@@ -168,7 +210,6 @@ else:
         data[pair[0]] = pair[1]
     arguments=MockArguments(data)       
 page=arguments.getvalue("page")
-userKeys=[]
 
 #boiler plate html strings
 print "Content-type: text/html"
