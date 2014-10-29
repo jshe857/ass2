@@ -1,51 +1,31 @@
+<form name="register" action="love2041.cgi?page=register" method="post">
 <div style="text-align:center; padding-top:10%">      
     <h1 style="display:inline-block;margin: 0 auto; font-family: 'Lobster', cursive; font-size:60px; color:#444">
         Registration
     </h1>
     <div class="card" style="padding:60px; width:50%; margin:20px auto 10 auto; border-radius:5px;">
 
-     <form name="register" action="love2041.cgi?page=register">
             <label class="item item-input">
-                <i
-                    class="icon placeholder-icon balanced"
-                    ng-class="register.name.$$vaild ? 'ion-checkmark-circled' : ''">
-                </i>
-
                 <input
-                name="name" type="text" ng-model="newUser.name" required 
-                placeholder="Name">
+                name="name" type="text" required 
+                placeholder="Username">
             </label>
 
             <label class="item item-input">
-                <i class="icon placeholder-icon balanced"
-                    ng-class="register.email.$$valid ? 'ion-checkmark-circled' : ''">
-                </i>
-                <input name="email" type="email" ng-model="newUser.email" required
+                <input name="email" type="email" required
                 placeholder="Email">
             </label>
 
             <label class="item item-input">
-
-                <i
-                    class="icon placeholder-icon balanced"
-                    ng-class="register.password.$$valid ? 'ion-checkmark-circled' : ''">
-                </i>
                 <input name="password" type="password" required
-                placeholder="Password 8-16 Characters" ng-model="newUser.pw"
-                password-valid>
+                placeholder="Password 8-16 Characters">
             </label>
 
             <label class="item item-input">
-
-                <i
-                    class="icon placeholder-icon balanced"
-                    ng-class="newUser.pwconfirm && newUser.pw == newUser.pwconfirm ? 'ion-checkmark-circled' : ''">
-                </i>
-                <input name="passwordconfirm" type="password" required
-                placeholder="Confirm Password" ng-model="newUser.pwconfirm">
+                <input name="confirm" type="password" required
+                placeholder="Confirm Password">
             </label>
             <div class="assertive">$error</div>
-    </form>
 </div>    
 <button  class="button button-assertive glass" style="display:block; width:50%; margin:0 auto; border:0;  border-radius:5px">
     Sign Me Up!
