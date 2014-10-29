@@ -207,8 +207,8 @@ def detailHandler():
         pageVars["title"] = user["username"]
         pageVars["template"] += Template(detail.read()).safe_substitute(user)
     message = arguments.getvalue("message")
-    message = re.sub(r'["]',"",message)
     if message:
+        #message = re.sub('''[|]''',"",message)
         subject="LOVE2041:"+pageVars["currUser"] +"Sent You A Message" 
         to=user["email"]
         with open("error","w") as error:
