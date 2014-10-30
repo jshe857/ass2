@@ -9,7 +9,7 @@ from datetime import date
 from subprocess import Popen,STDOUT,PIPE
 listKeys = ["favourite_movies","favourite_books","courses","favourite_bands","favourite_TV_shows","favourite_hobbies"]
 listPref = ["hair_colours","age","height"]
-undisclosed = ["height","weight","birthdate","gender","hair_colour"]
+undisclosed = ["height","weight","birthdate","gender","hair_colour","degree","profiletext","age"]
 pageVars = {"template":"","error":"","currUser":""}
 template={"login":"index.html","register":"register.html","nav":"nav.html"}
 userKeys=[]
@@ -59,10 +59,6 @@ def postProcess():
         try:
             datestr = profile["birthdate"].split("/")
             (year,month,day) = map(int,datestr)
-            if day > 31:
-                temp = day
-                day = year
-                year = temp
             born = date(year,month,day)
             today = date.today()
             profile["age"] = today.year - born.year - ((today.month, today.day) < (born.month, born.day))
@@ -72,13 +68,12 @@ def postProcess():
         profile["match"] = matchMake(profile)
          
         for key in undisclosed:
-            if key not in profile:profile[key] = "Undisclosed"
+            if key not in profile:profile[key] = "Not Provided"
     
         profile["gender"] = profile["gender"][0].upper() + profile["gender"][1:]
         profile["hair_colour"] = profile["hair_colour"].capitalize()
         
-        if profile["age"] < 0:profile["age"] = "Undisclosed";
-        if "profiletext" not in profile:profile["profiletext"] = "About Me";
+        if profile["age"] < 0:profile["age"] = "Not Provided";
 
 #read in all user profiles and store as dict
 def readUserProfile(username):
@@ -112,6 +107,11 @@ def readDataFormat(lines):
             data[key] = tempStore.pop()
         else:
             data[key] = tempStore
+    if "birthdate" in data:
+        datestr = data["birthdate"].split("/")
+        (year,month,day) = map(int,datestr)
+        if day > 31:
+            data["birthdate"] = str(day) +"/" + str(month) +"/" +str(year)
     return data
 
 #return true if user and pw combination is valid 
@@ -151,18 +151,51 @@ def loginHandler():
 
 def writeFormat(data,fileHandle):
     for key in data:
-        fileHandle.write(key+":\n")
-        if type(data[key]) == str :
-            fileHandle.write("\t"+data[key]+"\n")
-            print("\t" + data[key])
-        else:
-            for entry in data[key]:
-                fileHandle.write("\t"+entry+"\n")
+        if data[key]:
+            fileHandle.write(key+":\n")
+            if type(data[key]) == str :
+                fileHandle.write("\t"+data[key]+"\n")
+                print("\t" + data[key])
+            else:
+                for entry in data[key]:
+                    fileHandle.write("\t"+entry+"\n")
 def aboutHandler():
     pageVars["title"] = "Edit Profile"
     currUser = pageVars["currUser"]
+    loginProf = users[currUser]
+    for key in undisclosed: 
+        if arguments.getvalue(key):
+            value = arguments.getvalue(key)
+            if key == "birthdate":
+                loginProf[key] = value.replace("-","/")
+            elif key == "weight":
+                loginProf[key] = value + "kg"
+            elif key == "height":
+                loginProf[key] = value + "m"
+            else:
+                loginProf[key]=value
+        
+        if key not in loginProf:
+            loginProf[key] =""
+        elif key == "birthdate":
+            loginProf["birthdate"] = loginProf["birthdate"].replace("/","-")
+        elif key == "weight":
+            loginProf[key] = loginProf[key][:-2]
+        elif key == "height":
+            loginProf[key] = loginProf[key][:-1]
+     
+    if arguments.getvalue("password"):
+        value = arguments.getvalue("password")
+        if value != arguments.getvalue("confirmpass"):
+            pageVars["error"] = "Passwords do not match!"
+        elif 8<=value<=16:
+            loginProf["password"]=value
+        else: 
+            pageVars["error"] = "Password is wrong format!"
+    
+    
     with open("templates/about.html","r") as template:
-        pageVars["template"] += Template(template.read()).safe_substitute(users[currUser])
+        pageVars["template"] += Template(template.read()).safe_substitute(loginProf)
     return "nav"
 def preferencesHandler():
     pageVars["title"] = "My Match Preferences"

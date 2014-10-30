@@ -1,4 +1,4 @@
-<form name="about" action="love2041.cgi?page=about" method="post">
+<form action="love2041.cgi?page=about" method="post">
     <div class="card list">
         <div class="item item-divider">
             Change Password
@@ -24,15 +24,15 @@
         </div>
         <div class="item">
             <div style="float:left"><b>Gender:</b></div>
-            <div style="float:right"><input type="text" name="gender" value="female"></div>
+            <div style="float:right"><input type="text" name="gender" value="$gender"></div>
         </div>
         <div class="item">
             <div style="float:left"><b>Height:</b></div>
-            <div style="float:right"><input type="number" name="height" value="$height" step="any"></div>
+            <div style="float:right"><input type="number" name="height" value="$height" step="any">m</div>
         </div>
         <div class="item">
             <div style="float:left"><b>Weight:</b></div>
-            <div style="float:right"><input type="number" name="weight" value="$weight" step="any"></div>
+            <div style="float:right"><input type="number" name="weight" value="$weight" step="any">kg</div>
         </div>
         <div class="item">
             <div style="float:left"><b>Hair Colour:</b></div><div style="float:right"><input type="text" name="hair_colour" value="$hair_colour"></div>
@@ -51,5 +51,5 @@
     <textarea name="profiletext" rows="10">$profiletext</textarea>
 </div>
 </div>
+<button class="button glass button-block" >Submit!</button>
 </form>
-<button form="about" class="button glass button-block" >Submit!</button>
