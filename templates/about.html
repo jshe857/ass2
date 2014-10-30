@@ -1,0 +1,55 @@
+<form name="about" action="love2041.cgi?page=about" method="post">
+    <div class="card list">
+        <div class="item item-divider">
+            Change Password
+        </div>
+
+        <div class="item">
+            <div style="float:left"><b>New Password:</b></div>
+            <div style="float:right"><input type="password" name="password" value=""></div>
+        </div>
+        <div class="item">
+            <div style="float:left"><b>Confirm Password:</b></div>
+            <div style="float:right"><input type="password" name="confirmpass" value=""></div>
+        </div>
+    </div>
+    <div class="card list">
+        <div class="item item-divider">
+            About
+        </div>
+
+        <div class="item">
+            <div style="float:left"><b>Name:</b></div>
+            <div style="float:right"><input type="text" name="name" value="$name"></div>
+        </div>
+        <div class="item">
+            <div style="float:left"><b>Gender:</b></div>
+            <div style="float:right"><input type="text" name="gender" value="female"></div>
+        </div>
+        <div class="item">
+            <div style="float:left"><b>Height:</b></div>
+            <div style="float:right"><input type="number" name="height" value="$height" step="any"></div>
+        </div>
+        <div class="item">
+            <div style="float:left"><b>Weight:</b></div>
+            <div style="float:right"><input type="number" name="weight" value="$weight" step="any"></div>
+        </div>
+        <div class="item">
+            <div style="float:left"><b>Hair Colour:</b></div><div style="float:right"><input type="text" name="hair_colour" value="$hair_colour"></div>
+        </div>
+        <div class="item">
+            <div style="float:left"><b>Birthdate:</b></div><div style="float:right"><input type="date" name="birthdate" value="$birthdate"></div>
+        </div>
+        <div class="item">
+            <div style="float:left"><b>Degree:</b></div><div style="float:right"><input type="text" name="degree" value="$degree"></div>
+        </div>
+    </div>
+<div class="card list">
+    <div class="item item-divider">
+        Profile Text:
+    </div>
+    <textarea name="profiletext" rows="10">$profiletext</textarea>
+</div>
+</div>
+</form>
+<button form="about" class="button glass button-block" >Submit!</button>

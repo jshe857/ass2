@@ -11,8 +11,8 @@ $template
 <!-- Left menu -->
 <ion-side-menu expose-aside-when="large" side="left" style="background:rgba(1,1,1,0.1)">
 
-<div class="list card" style="padding:20px; height:90%; margin:40px 15px">    
-    <img style="border-radius:50%; border: 6px solid #F491AF" height="200px" width="200px" src="students/$currUser/profile.jpg">
+<div class="list card" style="padding:20px; text-align:center;height:95%; margin:20px 15px">    
+    <img style="border-radius:50%; border: 6px solid #F491AF" height="180px" width="180px" src="students/$currUser/profile.jpg" alt="No Image Uploaded">
     <h1 style="text-align:center;border-bottom:4px solid #444; font-family: 'Lobster',cursive; color:#444; background:white; padding:10; margin:0">Navigation</h1>
     <a href="?page=browse"><div class="card" style="padding:8px 30px">
             <h2><i class="icon ion-planet" style="font-size:24;"></i>&nbsp;Browse</h2>
@@ -26,8 +26,16 @@ $template
             <h2><i class="icon ion-heart" style="font-size:24;"></i>&nbsp;Matches</h2>
         </div>
     </a>
-    <a href="?page=edit"><div class="card" style="padding:8px 30px">
-            <h2><i class="icon ion-edit" style="font-size:24;"></i>&nbsp;Profile</h2>
+    <a href="?page=preferences"><div class="card" style="padding:8px 30px">
+            <h2 style="font-size:20px"><i class="icon ion-person-stalker" style="font-size:24;"></i>&nbsp;Preferences</h2>
+        </div>
+    </a>
+    <a href="?page=about"><div class="card" style="padding:8px 30px">
+            <h2><i class="icon ion-information-circled" style="font-size:24;"></i>&nbsp;About Me</h2>
+        </div>
+    </a>
+    <a href="?page=interests"><div class="card" style="padding:8px 30px">
+            <h2><i class="icon ion-edit" style="font-size:24;"></i>&nbsp;Interests</h2>
         </div>
     </a>
     <a href="?page=logout"><div class="card" style="padding:8px 30px">

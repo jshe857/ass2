@@ -13,6 +13,9 @@ undisclosed = ["height","weight","birthdate","gender","hair_colour"]
 pageVars = {"template":"","error":"","currUser":""}
 template={"login":"index.html","register":"register.html","nav":"nav.html"}
 userKeys=[]
+matchPages=["detail","browse","search","match"]
+
+
 class MockArguments:
     def __init__(self,args):
         self.data = args
@@ -37,7 +40,10 @@ def matchMake(profile):
             age = profile["age"]
             match += 50 - min(abs(int(pref["age"][0])-age),abs(int(pref["age"][1])-age))
     else:
-        match += max (50 - abs(loginProf["age"] - profile["age"]) ,0)
+        try:
+            match += max (50 - abs(loginProf["age"] - profile["age"]) ,0)
+        except:
+            match = match
     if "height" in criteria:
         if float(pref["height"][0]) <= float(profile.get("height",0)) <= float(pref["height"][1]):match+=50
     if "hair_colours" in criteria:
@@ -125,8 +131,8 @@ def logoutHandler():
     return loginHandler()
 def loginHandler():
     user = arguments.getvalue("username")
-    pw = arguments.getvalue("password")
-    if (user):
+    pw = arguments.getvalue("loginpassword")
+    if (user and pw):
         if(authenticate(user,pw)):
             for cookieid, username in activeSess.items():
                 if username == user:
@@ -134,7 +140,7 @@ def loginHandler():
             activeSess[cookie["id"].value]=user
             json.dump(activeSess,open("sessions","w"))
             pageVars["currUser"] = user
-            
+            postProcess()
             return browseHandler()
         else:
            pageVars["user"] = user
@@ -142,27 +148,78 @@ def loginHandler():
     else:
         pageVars["user"] = ""
     return "login"
+
+def writeFormat(data,fileHandle):
+    for key in data:
+        fileHandle.write(key+":\n")
+        if type(data[key]) == str :
+            fileHandle.write("\t"+data[key]+"\n")
+            print("\t" + data[key])
+        else:
+            for entry in data[key]:
+                fileHandle.write("\t"+entry+"\n")
+def aboutHandler():
+    pageVars["title"] = "Edit Profile"
+    currUser = pageVars["currUser"]
+    with open("templates/about.html","r") as template:
+        pageVars["template"] += Template(template.read()).safe_substitute(users[currUser])
+    return "nav"
+def preferencesHandler():
+    pageVars["title"] = "My Match Preferences"
+    return "nav"
+def interestHandler():
+    pageVars["title"] = "My Interests"
+    loginProf = users[pageVars["currUser"]]
+    for key in listKeys:
+        if arguments.getvalue(key):
+            if arguments.getvalue(key) == "add":
+                try:
+                    toAdd = arguments.getvalue("add")
+                    if toAdd not in loginProf[key]:
+                        loginProf[key].append(toAdd)
+                except:
+                    loginProf[key] = [arguments.getvalue("add")]
+            else: 
+                del loginProf[key][int(arguments.getvalue(key))]
+            profile = open(STUD_DIR+pageVars["currUser"]+"/profile.txt","w")
+            writeProf = loginProf.copy()
+            del writeProf["photos"]
+            del writeProf["pref"]
+            del writeProf["avatar"]
+            writeFormat(writeProf, profile) 
+            break
+    with open("templates/interests.html","r") as template:
+        pageVars["template"] += Template(template.read()).safe_substitute(loginProf)
+    return "nav"
 def registerHandler():
     user=arguments.getvalue("username")
     pw = arguments.getvalue("password")
     email = arguments.getvalue("email")
+    name = arguments.getvalue("name")
     pwconfirm = arguments.getvalue("pwconfirm")
-    if user and email and pw and pwconfirm:
+    if user and email and pw and pwconfirm and name:
         if not (6<=len(pw)<=18):
             pageVars["error"] = "Invalid Password"
         elif pw != pwconfirm:
             pageVars["error"] = "Passwords Do No Match"
         elif re.match(r'[^A-Z0-9]',user,re.IGNORECASE):
-            pageVars["error"] = "Invalid Username"
+            pageVars["error"] = "Username may only contain alphanumeric characters"
+        elif len(user)<4:
+            pageVars["error"] = "Username must be atleast 4 characters"
+        elif re.match('''[<|"'>]''',name):
+            pageVars["error"] = "Invalid or mistyped name"
         else:
-            print "made dir"
-
-
-    else:
-        pageVars["error"] = "Please Fill In All Form Fields"
-
-    return 
-    
+            d = STUD_DIR+user+"/"
+            if not os.path.exists(d):
+               os.makedirs(d)
+               profile = open(d+"profile.txt","w+")
+               data = {"username":user,"password":pw,"email":email,"name":name}
+               writeFormat(data,profile)
+               open(d+"preferences.txt","w+")
+               print '<b style="text-align:center">Account Created! Please Login</b>'
+               return loginHandler()
+            else:
+               pageVars["error"] = "Username already taken"
     return "register"
 def listHandler():
     rng = arguments.getvalue("range")
@@ -180,7 +237,8 @@ def listHandler():
         key = userKeys[x]
         users[key]["url"] = "?page=detail&user="+key
         template += Template(cardTemplate).safe_substitute(users[key]) 
-    
+    if start >= end:
+        start = end-1
     nextrng = str(rng +1) if end<len(userKeys) else str(rng)
     prevrng = str(rng-1) if start>0 else str(rng)
     nextdis = "" if end <len(userKeys) else "disabled"
@@ -244,7 +302,7 @@ def searchHandler():
     <div style="margin-left:90; margin-right:90" class="card item-input-inset">
       <label class="item-input-wrapper">
           <i class="icon ion-ios7-search placeholder-icon"></i>
-          <input type="search" name="search" placeholder="Search" value="{0}">
+          <input type="search" name="search" placeholder="Search For User" value="{0}">
       </label>
       <input type="hidden" name="searchStore" value="{0}">
       <input type="submit" name="action" value="Search" class="button button-light button-clear">
@@ -257,11 +315,13 @@ def navHandler(page):
     if page not in pageHandler: page = None;
     currUser = pageVars["currUser"]
     if currUser:
-        if (not page):
+        if (not page or page == "register" or page == "login"):
             page="browse";
     elif page != "register":
         page="login"
-     
+
+    if pageVars["currUser"] and page in matchPages:
+        postProcess()
     page = pageHandler[page]()
     with open("templates/"+template[page],'r') as file:
         html = Template(file.read()).safe_substitute(pageVars)
@@ -280,15 +340,17 @@ with open("sessions","r") as sessions:
 currUser =  activeSess.get(cookie["id"].value)
 if currUser:
     pageVars["currUser"] = currUser
-else:
-    pageVars["currUser"] = "TenderMan52"
+#else:
+#    pageVars["currUser"] = "jeff"
 #static data declared here
 STUD_DIR = "students/"
 users ={}
 cardTemplate = "" 
 with open("templates/card.html",'r') as card:
     cardTemplate = card.read()
-pageHandler={"match":matchHandler, "search":searchHandler, "login":loginHandler,"register":registerHandler,"browse":browseHandler,"detail":detailHandler,"logout":logoutHandler}
+
+pageHandler={"interests":interestHandler,"preferences":preferencesHandler,"about":aboutHandler,"match":matchHandler, "search":searchHandler, "login":loginHandler,"register":registerHandler,"browse":browseHandler,"detail":detailHandler,"logout":logoutHandler}
+
 if (os.environ.get("REQUEST_URI")):
     arguments=cgi.FieldStorage()
 else:
@@ -309,8 +371,6 @@ for folder in glob.glob(STUD_DIR+"*"):
     username = re.sub(STUD_DIR,"",folder)
     users[username] = readUserProfile(username)
     userKeys = sorted(users.keys())
-if pageVars["currUser"]:
-    postProcess()
 
 html = navHandler(page)
 

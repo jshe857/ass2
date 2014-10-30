@@ -1,0 +1,75 @@
+<form action="love2041.cgi?page=interests" method="post">
+    <div class="card list">
+        <div class="item item-divider">
+            <i class="icon ion-ios7-football-outline"></i> Courses
+        </div>
+        <div class="item" ng-repeat="item in $courses">
+            {{item.replace("&39;","'")}}
+            <button name="courses" class="button button-assertive"  ng-value="$$index" style="float:right">Del</button> 
+        </div>
+        <div class="item">
+            <input type="text" name="add" value="" style="width:20%;float:left">
+            <button name="courses" class="button button-positive"  value="add" style="float:right">Add</button> 
+        </div>
+    </div>
+</form>
+<form action="love2041.cgi?page=interests" method="post">
+    <div class="card list">
+        <div class="item item-divider">
+            <i class="icon ion-ios7-football-outline"></i> Favourite Hobbies
+        </div>
+        <div class="item" ng-repeat="item in $favourite_hobbies">
+            {{item.replace("&39;","'")}}
+            <button name="favourite_hobbies" class="button button-assertive"  ng-value="$$index" style="float:right">Del</button> 
+        </div>
+        <div class="item">
+            <input type="text" name="add" value="" style="width:20%;float:left">
+            <button name="favourite_hobbies" class="button button-positive"  value="add" style="float:right">Add</button> 
+        </div>
+    </div>
+</form>
+<form action="love2041.cgi?page=interests" method="post">
+    <div class="card list">
+        <div class="item item-divider">
+            <i class="icon ion-android-book"></i> Favourite Books
+        </div>
+        <div class="item" ng-repeat="item in $favourite_books">
+            {{item.replace("&39;","'")}}
+            <button name="favourite_books" class="button button-assertive"  ng-value="$$index" style="float:right">Del</button> 
+        </div>
+        <div class="item">
+            <input type="text" name="add" value="" style="width:20%;float:left">
+            <button name="favourite_books" class="button button-positive"  value="add" style="float:right">Add</button> 
+        </div>
+    </div>
+</form>
+<form action="love2041.cgi?page=interests" method="post">
+    <div class="card list">
+        <div class="item item-divider">
+            <i class="icon ion-ios7-film"></i> Favourite Movies
+        </div>
+        <div class="item" ng-repeat="item in $favourite_movies">
+            {{item.replace("&39;","'")}}
+            <button name="favourite_books" class="button button-assertive"  ng-value="$$index" style="float:right">Del</button> 
+        </div>
+        <div class="item">
+            <input type="text" name="add" value="" style="width:20%;float:left">
+            <button name="favourite_books" class="button button-positive"  value="add" style="float:right">Add</button> 
+        </div>
+    </div>
+    <div class="card list">
+</form>
+<form action="love2041.cgi?page=interests" method="post">
+        <div class="item item-divider">
+            <i class="icon ion-music-note"></i> Favourite Music
+        </div>
+        <div class="item" ng-repeat="item in $favourite_movies">
+            {{item.replace("&39;","'")}}
+            <button name="favourite_books" class="button button-assertive"  ng-value="$$index" style="float:right">Del</button> 
+        </div>
+        <div class="item">
+            <input type="text" name="add" value="" style="width:20%;float:left">
+            <button name="favourite_books" class="button button-positive"  value="add" style="float:right">Add</button> 
+        </div>
+    </div>
+</form> 
