@@ -453,7 +453,7 @@ def detailHandler():
     message = arguments.getvalue("message")
     if message:
 
-        message = "<div>"+pageVars["currUser"]+" said:</div>" + message + '<a href="'+os.environ.get("SCRIPT_URI")+'">Reply Back!</a>'
+        message = "<div>"+pageVars["currUser"]+" said:</div><p>" + message + '</p><a href="'+os.environ.get("SCRIPT_URI")+'?page=detail&user='+pageVars["currUser"]+'">Reply Back!</a>'
         subject="LOVE2041:"+pageVars["currUser"] +"Sent You A Message\nContent-Type:text/html" 
         to=user["email"]
         with open("error","w") as error:
