@@ -1,3 +1,21 @@
+<script>
+module.controller('PopupCtrl',function($scope, $ionicPopup, $timeout) {
+    $scope.showSuspend =function() {
+        var popup = $ionicPopup.show({
+            template: '<form action="love2041.cgi?page=about" method="post"><button class="button button-assertive button-block" type="submit" name="action" value="suspend">Confirm</button></form>',
+        buttons:[{text:"Cancel",type:"moveUp"}], 
+        title: 'Suspend Account?',
+        })
+    }
+    $scope.showDelete =function() {
+        var popup = $ionicPopup.show({
+        template: '<form action="love2041.cgi?page=about" method="post"><button class="button button-assertive button-block" type="submit" name="action" value="delete">Confirm</form>',
+        buttons:[{text:"Cancel",type:"moveUp"}], 
+        title: 'Delete Account?',
+        })
+    }
+});
+</script>
 <form action="love2041.cgi?page=about" method="post">
     <div class="card list">
         <div class="item item-divider">
@@ -51,7 +69,10 @@
     <textarea name="profiletext" rows="10">$profiletext</textarea>
 </div>
 </div>
-<button class="button button-light button-block" ><b>Update</b></button>
-<button class="button button-positive button-block"><b>Suspend</b></button>
-<button class="button button-assertive button-block"><b>Delete</b></button>
+<button class="button button-light button-block" name="action" value="update"><b>Update</b></button>
+<div ng-controller="PopupCtrl">
+<a ng-click="showSuspend()" class="button button-positive button-block"><b>Suspend</b></a>
+<button class="button button-balanced button-block" name="action" value="unsuspend">Unsuspend</button>
+<a ng-click="showDelete()" class="button button-assertive button-block"><b>Delete</b></a>
+</div>
 </form>

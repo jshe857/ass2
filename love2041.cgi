@@ -23,10 +23,8 @@
 
 import cgi
 import cgitb; cgitb.enable()  # for troubleshooting
-import Cookie,glob,re,os,uuid,json
+import Cookie,glob,re,os,uuid,json,shutil,sys
 from string import Template
-import pprint
-import sys
 from datetime import date
 from subprocess import Popen,STDOUT,PIPE
 listKeys = ["favourite_movies","favourite_books","courses","favourite_bands","favourite_TV_shows","favourite_hobbies"]
@@ -77,6 +75,7 @@ def matchMake(profile):
         if profile.get("gender") in pref["gender"]:match +=400
         elif not profile.get("gender"): match +=50
         else: match = 0
+    if match <0: match=0 
     return match
 
 #Alter data for display to be human readable
@@ -264,29 +263,41 @@ def aboutHandler():
     pageVars["title"] = "Edit Profile"
     currUser = pageVars["currUser"]
     loginProf = users[currUser]
-    for key in undisclosed: 
-        if arguments.getvalue(key):
-            value = arguments.getvalue(key)
-            if key == "birthdate":
-                loginProf[key] = value.replace("-","/")
-            else:
-                loginProf[key]=value
+    action = arguments.getvalue("action")
+    if action:
+        if action == "delete":
+            shutil.rmtree(STUD_DIR+currUser)
+            return logoutHandler()
+        elif action == "suspend":
+            loginProf["suspend"] = "True"
+        elif action == "unsuspend":
+            loginProf["suspend"] = "False"
+        elif action == "update":
+            for key in undisclosed: 
+                if arguments.getvalue(key):
+                    value = arguments.getvalue(key)
+                    if key == "birthdate":
+                        loginProf[key] = value.replace("-","/")
+                    elif key == "profiletext":
+                        loginProf[key] = re.sub("<\s*/?\s*[^bip]\s+.*?>","",value).replace("\n","")
+                    else:
+                        loginProf[key]=value
 
-    if arguments.getvalue("password"):
-        value = arguments.getvalue("password")
-        print value
-        if value != arguments.getvalue("confirmpass"):
-            pageVars["error"] = "Passwords do not match!"
-        elif 8<=len(value)<=16:
-            loginProf["password"]=value
-        else: 
-            pageVars["error"] = "Password is wrong format!"
+            if arguments.getvalue("password"):
+                value = arguments.getvalue("password")
+                print value
+                if value != arguments.getvalue("confirmpass"):
+                    pageVars["error"] = "Passwords do not match!"
+                elif 8<=len(value)<=16:
+                    loginProf["password"]=value
+                else: 
+                    pageVars["error"] = "Password is wrong format!"
 
-    profile = open(STUD_DIR+pageVars["currUser"]+"/profile.txt","w")
-    writeProf = loginProf.copy()
-    del writeProf["photos"]
-    del writeProf["avatar"]
-    writeFormat(writeProf, profile)    
+        profile = open(STUD_DIR+pageVars["currUser"]+"/profile.txt","w")
+        writeProf = loginProf.copy()
+        del writeProf["photos"]
+        del writeProf["avatar"]
+        writeFormat(writeProf, profile)    
                 
     for key in undisclosed:   
         if key not in loginProf:
@@ -384,14 +395,14 @@ def registerHandler():
         elif re.match('''[<|"'>]''',name):
             pageVars["error"] = "Invalid or mistyped name"
         else:
-            d = STUD_DIR+user+"/"
+            d = ""+user+"/"
             if not os.path.exists(d):
                os.makedirs(d)
                profile = open(d+"profile.txt","w+")
                data = {"username":user,"password":pw,"email":email,"name":name}
                writeFormat(data,profile)
                open(d+"preferences.txt","w+")
-               print '<b style="text-align:center">Account Created! Please Login</b>'
+               print '<b style="text-align:center">Please Check Your Email For Confirmation Email</b>'
                return loginHandler()
             else:
                pageVars["error"] = "Username already taken"
@@ -458,7 +469,6 @@ def matchHandler():
     pageVars["template"]+= '<form action="love2041.cgi?page=match" method="post">'
     global userKeys
     userKeys = sorted(userKeys,key=lambda key: users[key]["match"],reverse=True)
-    userKeys.remove(pageVars["currUser"]) # dont match with yourself
     return listHandler()
 def searchHandler():
     pageVars["title"] = "Search"
@@ -544,7 +554,10 @@ print '\n<html>\n  <head>\n    <meta charset=\"UTF-8\">\n    <title>\n      Love
 for folder in glob.glob(STUD_DIR+"*"):
     username = re.sub(STUD_DIR,"",folder)
     users[username] = readUserProfile(username)
-    userKeys = sorted(users.keys())
+
+for user in users:
+    if users[user].get("suspend") != "True":
+        userKeys.append(user)
 
 html = navHandler(page)
 
