@@ -1,0 +1,44 @@
+<form action="love2041.cgi?page=preferences" method="post">
+    <div class="card list">
+        <div class="item item-divider">Age:<button name="update" value="age" value="height" class="button-small button button-positive" style="float:right">Update</button></div>
+        <div class="item">
+            <div style="float:right">Min:<input type="number" name="min" value="$agemin"></div>
+            <div style="float:left">Max:<input type="number" name="max" value="$agemax"></div>
+        </div>
+    </div>
+</form>
+<form action="love2041.cgi?page=preferences" method="post">
+    <div class="card list">
+        <div class="item item-divider">Height:<button name="update" value="height" class="button-small button button-positive" style="float:right">Update</button></div>
+        <div class="item">
+            <div style="float:right">Min:<input type="number" step="any" name="min" value="$heightmin"></div>
+            <div style="float:left">Max:<input type="number" step="any" name="max" value="$heightmax"></div>
+        </div>
+    </div>
+</form>
+<form action="love2041.cgi?page=preferences" method="post">
+    <div class="card list">
+        <div class="item item-divider">Hair Color:</div>
+        <div class="item" ng-repeat="item in $hair_colours">
+            {{item.replace("&39;","'")}}
+            <button name="hair_colours" class="button button-assertive" ng-value="$$index" style="float:right">Del</button> 
+        </div>
+        <div class="item">
+            <input type="text" name="add" value="" style="width:20%;float:left">
+            <button name="hair_colours" class="button button-positive"  value="add" style="float:right">Add</button> 
+        </div>
+    </div>
+</form>
+<form action="love2041.cgi?page=preferences" method="post">
+    <div class="card list">
+        <div class="item item-divider">Gender:</div>
+        <div class="item" ng-repeat="item in $gender">
+            {{item.replace("&39;","'")}}
+            <button name="gender" class="button button-assertive"ng-value="$$index" style="float:right">Del</button> 
+        </div>
+        <div class="item">
+            <input type="text" name="add" value="" style="width:20%;float:left">
+            <button name="gender" class="button button-positive"  value="add" style="float:right">Add</button> 
+        </div>
+    </div>
+</form>

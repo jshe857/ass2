@@ -8,8 +8,7 @@ import sys
 from datetime import date
 from subprocess import Popen,STDOUT,PIPE
 listKeys = ["favourite_movies","favourite_books","courses","favourite_bands","favourite_TV_shows","favourite_hobbies"]
-listPref = ["hair_colours","age","height"]
-undisclosed = ["height","weight","birthdate","gender","hair_colour","degree","profiletext","age"]
+undisclosed = ["name","height","weight","birthdate","gender","hair_colour","degree","profiletext","age"]
 pageVars = {"template":"","error":"","currUser":""}
 template={"login":"index.html","register":"register.html","nav":"nav.html"}
 userKeys=[]
@@ -32,7 +31,7 @@ def matchMake(profile):
        set2 = set(profile.get(key,[]))
        match += len(set1 & set2)*10
     
-    pref = loginProf["pref"]
+    pref = readUserPreferences(currUser)
     criteria = pref.keys()
     if "age" in criteria:
         if int(pref["age"][0]) <= int(profile["age"]) <= int(pref["age"][1]):match+=50
@@ -49,10 +48,11 @@ def matchMake(profile):
     if "hair_colours" in criteria:
             if profile.get("hair_colour","") in pref["hair_colours"]: match+= 50 
     if "gender" in criteria:
-        if pref["gender"] == profile.get("gender") :match +=400
+        if profile.get("gender") in pref["gender"]:match +=400
         elif not profile.get("gender"): match +=50
         else: match = 0
     return match
+
 def postProcess():
     for key in users:
         profile = users[key]
@@ -83,9 +83,25 @@ def readUserProfile(username):
         profile["photos"].append(file)
     with open(dir+"profile.txt","r") as info:
         profile.update(readDataFormat(info.readlines()))
-    with open(dir+"preferences.txt","r") as pref:
-        profile["pref"] = readDataFormat(pref.readlines())
     return profile
+
+#read in user preferences
+def readUserPreferences(username):
+    data={}
+    with open(STUD_DIR+username+"/preferences.txt","r") as pref:
+        lines = pref.readlines()
+        x=0 
+        while (x<len(lines)):
+            key = lines[x].strip()[:-1]
+            x+=1
+            tempStore = list()
+            while (x < len(lines)) and (lines[x].startswith("\t")):
+                info = lines[x].strip().replace("'","&39;").replace('"','&#quot;')
+                if info != "min:" and info != "max:":
+                    tempStore.append(info)
+                x+=1
+            data[key] = tempStore
+    return data
 
 #parse data format of txt files and convert to dict
 def readDataFormat(lines):
@@ -97,13 +113,9 @@ def readDataFormat(lines):
         tempStore = list()
         while (x < len(lines)) and (lines[x].startswith("\t")):
             info = lines[x].strip().replace("'","&39;").replace('"','&#quot;')
-            
-            if not info == "min:" and not info == "max:":
-                tempStore.append(info)
+            tempStore.append(info)
             x+=1
-        if key == "height" and len(tempStore) == 1:
-            data[key] = tempStore.pop()
-        elif key not in listKeys and key not in listPref:
+        if key not in listKeys:
             data[key] = tempStore.pop()
         else:
             data[key] = tempStore
@@ -130,6 +142,10 @@ def logoutHandler():
         print ("No Active Session For Cookie")
     return loginHandler()
 def loginHandler():
+    pageVars["page"] = arguments.getvalue("page")
+    if pageVars["page"] == "logout":
+        pageVars["page"] = "login"
+    pageVars["profile"] = arguments.getvalue("user")
     user = arguments.getvalue("username")
     pw = arguments.getvalue("loginpassword")
     if (user and pw):
@@ -140,8 +156,8 @@ def loginHandler():
             activeSess[cookie["id"].value]=user
             json.dump(activeSess,open("sessions","w"))
             pageVars["currUser"] = user
-            postProcess()
-            return browseHandler()
+            print (navHandler(arguments.getvalue("page")))
+            return
         else:
            pageVars["user"] = user
            pageVars["error"]="Invalid username or password"
@@ -155,7 +171,6 @@ def writeFormat(data,fileHandle):
             fileHandle.write(key+":\n")
             if type(data[key]) == str :
                 fileHandle.write("\t"+data[key]+"\n")
-                print("\t" + data[key])
             else:
                 for entry in data[key]:
                     fileHandle.write("\t"+entry+"\n")
@@ -174,7 +189,24 @@ def aboutHandler():
                 loginProf[key] = value + "m"
             else:
                 loginProf[key]=value
-        
+
+    if arguments.getvalue("password"):
+        value = arguments.getvalue("password")
+        print value
+        if value != arguments.getvalue("confirmpass"):
+            pageVars["error"] = "Passwords do not match!"
+        elif 8<=len(value)<=16:
+            loginProf["password"]=value
+        else: 
+            pageVars["error"] = "Password is wrong format!"
+
+    profile = open(STUD_DIR+pageVars["currUser"]+"/profile.txt","w")
+    writeProf = loginProf.copy()
+    del writeProf["photos"]
+    del writeProf["avatar"]
+    writeFormat(writeProf, profile)    
+                
+    for key in undisclosed:   
         if key not in loginProf:
             loginProf[key] =""
         elif key == "birthdate":
@@ -183,15 +215,6 @@ def aboutHandler():
             loginProf[key] = loginProf[key][:-2]
         elif key == "height":
             loginProf[key] = loginProf[key][:-1]
-     
-    if arguments.getvalue("password"):
-        value = arguments.getvalue("password")
-        if value != arguments.getvalue("confirmpass"):
-            pageVars["error"] = "Passwords do not match!"
-        elif 8<=value<=16:
-            loginProf["password"]=value
-        else: 
-            pageVars["error"] = "Password is wrong format!"
     
     
     with open("templates/about.html","r") as template:
@@ -199,25 +222,67 @@ def aboutHandler():
     return "nav"
 def preferencesHandler():
     pageVars["title"] = "My Match Preferences"
+    currUser = pageVars["currUser"]
+    pref = readUserPreferences(currUser)
+    print arguments.keys()
+    update = arguments.getvalue("update")
+    if update:
+        mini = arguments.getvalue("min")
+        maxi = arguments.getvalue("max")
+        if mini and maxi:
+            pref[update][0] = mini
+            pref[update][1] = maxi
+        else:
+            pageVars["error"] = "Please fill in both Max and Min fields"
+
+    for key in ["hair_colour","gender"]:
+        if arguments.getvalue(key) == "add":
+            try:
+                toAdd = arguments.getvalue("add")
+                if toAdd and toAdd not in pref[key]:
+                    pref[key].append(toAdd)
+            except:
+                pref[key] = [arguments.getvalue("add")]
+        elif arguments.getvalue(key):
+            try:
+                del pref[key][int(arguments.getvalue(key))]
+            except:
+                pageVars["error"] = "Please delete a valid item"
+    
+    
+    if "age" in pref: 
+        pref["agemin"] = pref["age"][0]
+        pref["agemax"] = pref["age"][1]
+    if "height" in pref:
+        pref["heightmin"] = pref["height"][0]
+        pref["heightmax"] = pref["height"][1]
+
+    with open("templates/preferences.html","r") as template:
+        pageVars["template"] += Template(template.read()).safe_substitute(pref)
     return "nav"
+
+
+
+
 def interestHandler():
     pageVars["title"] = "My Interests"
     loginProf = users[pageVars["currUser"]]
     for key in listKeys:
-        if arguments.getvalue(key):
             if arguments.getvalue(key) == "add":
                 try:
                     toAdd = arguments.getvalue("add")
-                    if toAdd not in loginProf[key]:
+                    if toAdd and toAdd not in loginProf[key]:
                         loginProf[key].append(toAdd)
                 except:
                     loginProf[key] = [arguments.getvalue("add")]
-            else: 
-                del loginProf[key][int(arguments.getvalue(key))]
+            else:
+                try:
+                    del loginProf[key][int(arguments.getvalue(key))]
+                except:
+                    pageVars["error"] = "Please delete a valid item"
             profile = open(STUD_DIR+pageVars["currUser"]+"/profile.txt","w")
             writeProf = loginProf.copy()
             del writeProf["photos"]
-            del writeProf["pref"]
             del writeProf["avatar"]
             writeFormat(writeProf, profile) 
             break
@@ -299,8 +364,9 @@ def detailHandler():
         pageVars["template"] += Template(detail.read()).safe_substitute(user)
     message = arguments.getvalue("message")
     if message:
-        #message = re.sub('''[|]''',"",message)
-        subject="LOVE2041:"+pageVars["currUser"] +"Sent You A Message" 
+
+        message = "<div>"+pageVars["currUser"]+" said:</div>" + message + '<a href="'+os.environ.get(SCRIPT_URL)+'">Reply Back!</a>'
+        subject="LOVE2041:"+pageVars["currUser"] +"Sent You A Message\nContent-Type:text/html" 
         to=user["email"]
         with open("error","w") as error:
             p1 = Popen(["mail","-s" ,subject,to],stdin=PIPE,stdout=error,stderr=error)
@@ -311,12 +377,14 @@ def browseHandler():
     pageVars["template"]+='<form action="love2041.cgi?page=browse" method="post">'
     return listHandler()
 def matchHandler():
+    pageVars["title"] = "Matches"
     pageVars["template"]+= '<form action="love2041.cgi?page=match" method="post">'
     global userKeys
     userKeys = sorted(userKeys,key=lambda key: users[key]["match"],reverse=True)
     userKeys.remove(pageVars["currUser"]) # dont match with yourself
     return listHandler()
 def searchHandler():
+    pageVars["title"] = "Search"
     searchString = arguments.getvalue("searchStore")
     if not searchString: searchString=""
     if arguments.getvalue("action") == "Search":
@@ -343,6 +411,7 @@ def searchHandler():
     '''.format(searchString)
     pageVars["template"]+=searchbox
     return listHandler()
+
 #handles navigation and page logic
 def navHandler(page):
     if page not in pageHandler: page = None;
@@ -356,9 +425,11 @@ def navHandler(page):
     if pageVars["currUser"] and page in matchPages:
         postProcess()
     page = pageHandler[page]()
-    with open("templates/"+template[page],'r') as file:
-        html = Template(file.read()).safe_substitute(pageVars)
-    return html
+    if page in template:
+        with open("templates/"+template[page],'r') as file:
+            html = Template(file.read()).safe_substitute(pageVars)
+            return html
+    return ""
 
 #read in cookie info
 cookie=Cookie.SimpleCookie()
@@ -397,7 +468,7 @@ page=arguments.getvalue("page")
 #boiler plate html strings
 print "Content-type: text/html"
 print cookie
-print '\n<html>\n  <head>\n    <meta charset=\"UTF-8\">\n    <title>\n      Love 2041\n    </title>\n    <link rel=\"stylesheet\" href=\"ionic/css/ionic.min.css\">\n <link rel=\"stylesheet\" href=\"custom.css\">    <link href="http://fonts.googleapis.com/css?family=Lobster" rel="stylesheet" type="text/css">\n    <script src=\"ionic/js/ionic.bundle.js\"></script>\n <script src=\"custom.js\"></script>\n </head>\n  <body ng-app="main" style=\"background:linear-gradient(#FF4981,#FF4981); color:#444\">\n'
+print '\n<html>\n  <head>\n    <meta charset=\"UTF-8\">\n    <title>\n      Love 2041\n    </title>\n    <link rel=\"stylesheet\" href=\"ionic/css/ionic.min.css\">\n <link rel=\"stylesheet\" href=\"custom.css\">    <link href="http://fonts.googleapis.com/css?family=Lobster" rel="stylesheet" type="text/css">\n    <script src=\"ionic/js/ionic.bundle.js\"></script>\n <script src=\"custom.js\"></script>\n </head>\n  <body ng-app="main" style=\"background:#FFA9C3; color:#444\">\n'
 
 
 for folder in glob.glob(STUD_DIR+"*"):
