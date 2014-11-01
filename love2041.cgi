@@ -1,4 +1,26 @@
 #!/usr/bin/python
+##########LOVE2041#########################################################################
+# A CGI Scipt for a simple dating website 
+# Written by Jeffrey Shen
+##########Overview##########################################################################
+#
+#when run the cgi script:
+#1.Builds up a dict of all user profiles stored to speed up detail look up times
+#
+#2.Checks to see if it has recieved a cookie from browser
+#if so the cgi script checks to see if an active session  exists on server for that cookie id
+#if so, then the user is considered logged in
+#
+#3.the cgi script than looks at the page variable and passes it to the navHandler function
+#if the page is valid and the user is logged in the navHandler calls the specific pageHandler
+#to perform page specific logic and outputs the desired html page.
+#Otherwise the navHandler calls the loginHandler and displays a login screen to the user
+#
+#############################################################################################
+
+
+
+
 import cgi
 import cgitb; cgitb.enable()  # for troubleshooting
 import Cookie,glob,re,os,uuid,json
@@ -13,14 +35,18 @@ pageVars = {"template":"","error":"","currUser":""}
 template={"login":"index.html","register":"register.html","nav":"nav.html"}
 userKeys=[]
 matchPages=["detail","browse","search","match"]
+STUD_DIR = "students/"
+users ={}
+cardTemplate = open("templates/card.html",'r').read()
 
-
+#mock class for cgi debugging from terminal
 class MockArguments:
     def __init__(self,args):
         self.data = args
     def getvalue(self, key):
         return self.data.get(key)
 
+#Match Making Algorithm generates a score for each user based on preferences
 def matchMake(profile):
     currUser = pageVars["currUser"]
     loginProf = users[currUser]
@@ -53,6 +79,7 @@ def matchMake(profile):
         else: match = 0
     return match
 
+#Alter data for display to be human readable
 def postProcess():
     for key in users:
         profile = users[key]
@@ -444,14 +471,7 @@ with open("sessions","r") as sessions:
 currUser =  activeSess.get(cookie["id"].value)
 if currUser:
     pageVars["currUser"] = currUser
-#else:
-#    pageVars["currUser"] = "jeff"
-#static data declared here
-STUD_DIR = "students/"
-users ={}
-cardTemplate = "" 
-with open("templates/card.html",'r') as card:
-    cardTemplate = card.read()
+
 
 pageHandler={"interests":interestHandler,"preferences":preferencesHandler,"about":aboutHandler,"match":matchHandler, "search":searchHandler, "login":loginHandler,"register":registerHandler,"browse":browseHandler,"detail":detailHandler,"logout":logoutHandler}
 
