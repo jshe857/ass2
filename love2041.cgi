@@ -112,24 +112,6 @@ def readUserProfile(username):
         profile.update(readDataFormat(info.readlines()))
     return profile
 
-#read in user preferences
-def readUserPreferences(username):
-    data={}
-    with open(STUD_DIR+username+"/preferences.txt","r") as pref:
-        lines = pref.readlines()
-        x=0 
-        while (x<len(lines)):
-            key = lines[x].strip()[:-1]
-            x+=1
-            tempStore = list()
-            while (x < len(lines)) and (lines[x].startswith("\t")):
-                info = lines[x].strip().replace("'","&39;").replace('"','&#quot;')
-                if info != "min:" and info != "max:":
-                    tempStore.append(info)
-                x+=1
-            data[key] = tempStore
-    return data
-
 #parse data format of txt files and convert to dict
 def readDataFormat(lines):
     data={}
@@ -151,8 +133,62 @@ def readDataFormat(lines):
         (year,month,day) = map(int,datestr)
         if day > 31:
             data["birthdate"] = str(day) +"/" + str(month) +"/" +str(year)
+    if "height" in data:data["height"] = data["height"][:-1]
+    if "weight" in data:data["weight"] = data["weight"][:-2]
     return data
 
+#read in user preferences
+def readUserPreferences(username):
+    data={}
+    with open(STUD_DIR+username+"/preferences.txt","r") as pref:
+        lines = pref.readlines()
+        x=0 
+        while (x<len(lines)):
+            key = lines[x].strip()[:-1]
+            x+=1
+            tempStore = list()
+            while (x < len(lines)) and (lines[x].startswith("\t")):
+                info = lines[x].strip().replace("'","&39;").replace('"','&#quot;')
+                if info != "min:" and info != "max:":
+                    tempStore.append(info)
+                x+=1
+            data[key] = tempStore
+    if "height" in data:
+        data["height"][0] = data["height"][0][:-1]
+        data["height"][1] = data["height"][1][:-1]
+    if "weight" in data:
+        data["weight"][0] = data["weight"][0][:-2]
+        data["weight"][1] = data["weight"][1][:-2]
+    return data
+
+def writePreferences(obj, out):
+    for key in obj:
+       
+        out.write(key+":\n")
+        unit = ""
+        if key == "height" or key == "age":
+            if key == "height":unit = "m"
+            if key == "weight": unit ="kg"
+            out.write("\tmin:\n")
+            out.write("\t\t"+obj[key][0] +unit+"\n")
+            out.write("\tmax:\n")
+            out.write("\t\t"+obj[key][1]+unit+"\n")
+        else:
+            for data in obj[key]:
+                out.write("\t"+data+"\n")
+
+def writeFormat(data,fileHandle):
+    for key in data:
+        unit =""
+        if data[key]:
+            if key == "height": unit="m"
+            if key == "weight": unit="kg"
+            fileHandle.write(key+":\n")
+            if type(data[key]) == str :
+                fileHandle.write("\t"+data[key]+unit+"\n")
+            else:
+                for entry in data[key]:
+                    fileHandle.write("\t"+entry+"\n")
 #return true if user and pw combination is valid 
 def authenticate(user,pw):
     profile = users.get(user)
@@ -191,16 +227,39 @@ def loginHandler():
     else:
         pageVars["user"] = ""
     return "login"
+def imagesHandler():
+    pageVars["title"] = "My Images"
+    currUser = pageVars["currUser"]
+    loginProf = users[currUser]
+    upload = arguments.getvalue("upload")
+    delete = arguments.getvalue("delete")
 
-def writeFormat(data,fileHandle):
-    for key in data:
-        if data[key]:
-            fileHandle.write(key+":\n")
-            if type(data[key]) == str :
-                fileHandle.write("\t"+data[key]+"\n")
-            else:
-                for entry in data[key]:
-                    fileHandle.write("\t"+entry+"\n")
+    if upload == "avatar":
+        upfile = arguments["image"]
+        if upfile.file:
+           avatar = open(loginProf["avatar"],"w+")
+           avatar.write(upfile.file.read())
+        else:
+            pageVars["error"] = "No File Uploaded"
+    elif upload == "photo":
+        if upfile and upfile.file:
+            last = loginProf["photos"].lastIndex 
+            n = re.match("photo(.*)",last).group(0)
+            photoname = "photo"+str(int(n)+1).zfill(len(n))+".jpg"
+            avatar = open(photoname,"w+")
+            avatar.write(upfile.file.read())
+        else:
+            pageVars["error"] = "No File Uploaded"
+    elif delete:
+        deleted = loginProf["photos"][delete]
+        del loginProf["photos"][delete]
+        os.remove(deleted)
+
+
+    with open("templates/images.html") as template:
+        pageVars["template"] += Template(template.read()).safe_substitute(loginProf)
+    return "nav"
+
 def aboutHandler():
     pageVars["title"] = "Edit Profile"
     currUser = pageVars["currUser"]
@@ -210,10 +269,6 @@ def aboutHandler():
             value = arguments.getvalue(key)
             if key == "birthdate":
                 loginProf[key] = value.replace("-","/")
-            elif key == "weight":
-                loginProf[key] = value + "kg"
-            elif key == "height":
-                loginProf[key] = value + "m"
             else:
                 loginProf[key]=value
 
@@ -238,12 +293,6 @@ def aboutHandler():
             loginProf[key] =""
         elif key == "birthdate":
             loginProf["birthdate"] = loginProf["birthdate"].replace("/","-")
-        elif key == "weight":
-            loginProf[key] = loginProf[key][:-2]
-        elif key == "height":
-            loginProf[key] = loginProf[key][:-1]
-    
-    
     with open("templates/about.html","r") as template:
         pageVars["template"] += Template(template.read()).safe_substitute(loginProf)
     return "nav"
@@ -251,23 +300,23 @@ def preferencesHandler():
     pageVars["title"] = "My Match Preferences"
     currUser = pageVars["currUser"]
     pref = readUserPreferences(currUser)
-    print arguments.keys()
     update = arguments.getvalue("update")
     if update:
         mini = arguments.getvalue("min")
         maxi = arguments.getvalue("max")
-        if mini and maxi:
+        if mini and maxi and mini <= maxi:
+            if not pref.get(update): pref[update] = [0,0];
             pref[update][0] = mini
             pref[update][1] = maxi
         else:
-            pageVars["error"] = "Please fill in both Max and Min fields"
+            pageVars["error"] = "Invalid Range"
 
-    for key in ["hair_colour","gender"]:
+    for key in ["hair_colours","gender"]:
         if arguments.getvalue(key) == "add":
             try:
                 toAdd = arguments.getvalue("add")
                 if toAdd and toAdd not in pref[key]:
-                    pref[key].append(toAdd)
+                    pref[key].append(toAdd.lower())
             except:
                 pref[key] = [arguments.getvalue("add")]
         elif arguments.getvalue(key):
@@ -275,14 +324,17 @@ def preferencesHandler():
                 del pref[key][int(arguments.getvalue(key))]
             except:
                 pageVars["error"] = "Please delete a valid item"
-    
-    
+    prefFile = open(STUD_DIR+pageVars["currUser"]+"/preferences.txt","w")
+    writePreferences(pref, prefFile) 
     if "age" in pref: 
         pref["agemin"] = pref["age"][0]
         pref["agemax"] = pref["age"][1]
     if "height" in pref:
         pref["heightmin"] = pref["height"][0]
         pref["heightmax"] = pref["height"][1]
+    if "weight" in pref:
+        pref["weightmin"] = pref["weight"][0]
+        pref["weightmax"] = pref["weight"][1]
 
     with open("templates/preferences.html","r") as template:
         pageVars["template"] += Template(template.read()).safe_substitute(pref)
@@ -295,6 +347,7 @@ def interestHandler():
     pageVars["title"] = "My Interests"
     loginProf = users[pageVars["currUser"]]
     for key in listKeys:
+        if arguments.getvalue(key):
             if arguments.getvalue(key) == "add":
                 try:
                     toAdd = arguments.getvalue("add")
@@ -303,10 +356,7 @@ def interestHandler():
                 except:
                     loginProf[key] = [arguments.getvalue("add")]
             else:
-                try:
-                    del loginProf[key][int(arguments.getvalue(key))]
-                except:
-                    pageVars["error"] = "Please delete a valid item"
+                del loginProf[key][int(arguments.getvalue(key))]
             profile = open(STUD_DIR+pageVars["currUser"]+"/profile.txt","w")
             writeProf = loginProf.copy()
             del writeProf["photos"]
@@ -392,7 +442,7 @@ def detailHandler():
     message = arguments.getvalue("message")
     if message:
 
-        message = "<div>"+pageVars["currUser"]+" said:</div>" + message + '<a href="'+os.environ.get(SCRIPT_URL)+'">Reply Back!</a>'
+        message = "<div>"+pageVars["currUser"]+" said:</div>" + message + '<a href="'+os.environ.get("SCRIPT_URI")+'">Reply Back!</a>'
         subject="LOVE2041:"+pageVars["currUser"] +"Sent You A Message\nContent-Type:text/html" 
         to=user["email"]
         with open("error","w") as error:
@@ -473,7 +523,7 @@ if currUser:
     pageVars["currUser"] = currUser
 
 
-pageHandler={"interests":interestHandler,"preferences":preferencesHandler,"about":aboutHandler,"match":matchHandler, "search":searchHandler, "login":loginHandler,"register":registerHandler,"browse":browseHandler,"detail":detailHandler,"logout":logoutHandler}
+pageHandler={"images":imagesHandler,"interests":interestHandler,"preferences":preferencesHandler,"about":aboutHandler,"match":matchHandler, "search":searchHandler, "login":loginHandler,"register":registerHandler,"browse":browseHandler,"detail":detailHandler,"logout":logoutHandler}
 
 if (os.environ.get("REQUEST_URI")):
     arguments=cgi.FieldStorage()

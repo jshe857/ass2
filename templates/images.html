@@ -1,0 +1,31 @@
+<form action="love2041.cgi?page=images" method="post"yy>
+    <div class="card list">
+        <div class="item item-divider">
+            Profile Picture
+        </div>
+        <div class="item" style="text-align:center">
+        <img style="float:left" src="$avatar">
+        </div>
+        <div class="item">
+        <input accept="jpg,png,gif,bmp" style="float:left" name="image" type="file" required>
+        <button style="float:right" class="button button-positive" name="upload" value="avatar">Upload</button>
+        </div>
+    </div>
+</form>
+<form action="love2041.cgi?page=images" method="post"yy>
+    <div class="card list">
+        <div class="item item-divider">
+            Uploaded Pictures
+        </div>
+        <div class="item" ng-repeat="photo is $photos">
+            <img ng-src="{{photo}}">
+            <button name="delete" value="$$index" class="button button-assertive">Delete</button>
+        </div>
+        <div class="item">
+        <input accept="jpg,png,gif,bmp" style="float:left" name="image" type="file" required>
+        <button style="float:right" class="button button-positive" name="upload" value="photo">Upload</button>
+        </div>
+    </div>
+</form>
+
+
