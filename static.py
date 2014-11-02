@@ -4,5 +4,5 @@ undisclosed = ["name","height","weight","birthdate","gender","hair_colour","degr
 template={"login":"index.html","register":"register.html","nav":"nav.html"}
 matchPages=["detail","browse","search","match"]
 cardTemplate = open("templates/card.html",'r').read()
-
+STUD_DIR = "students/"
 

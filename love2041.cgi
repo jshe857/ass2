@@ -23,7 +23,7 @@
 
 import cgi
 import cgitb; cgitb.enable()  # for troubleshooting
-import Cookie,os,uuid,sys,json
+import Cookie,os,uuid,sys
 
 ########User Imports########
 import handlers
@@ -45,12 +45,7 @@ if 'HTTP_COOKIE' in os.environ:
 if "id" not in cookie:cookie["id"]= uuid.uuid1();
 
 
-#Current Active User Sessions
-activeSess={}
-with open("sessions","r") as sessions:
-    activeSess=json.load(sessions)
 
-currUser = activeSess.get(cookie["id"].value,"")
 
 if (os.environ.get("REQUEST_URI")):
     arguments=cgi.FieldStorage()
@@ -72,7 +67,7 @@ print '\n<html>\n  <head>\n    <meta charset=\"UTF-8\">\n    <title>\n      Love
 handlers.users = users
 handlers.userKeys = userKeys
 handlers.arguments = arguments
-handlers.pageVars["currUser"] = currUser
+handlers.cookieID = cookie["id"].value
 html = handlers.navHandler()
 
 print html

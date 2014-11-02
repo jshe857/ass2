@@ -8,7 +8,6 @@
 
 import glob,re,os,uuid,shutil,sys
 from string import Template
-from datetime import date
 from subprocess import Popen,STDOUT,PIPE
 
 #User Import
@@ -19,10 +18,10 @@ import static
 users={}
 userKeys = []
 arguments ={}
+cookieID = ""
 
 #Page variables to be injected into the html template
 pageVars = {"template":"","error":"","currUser":""}
-
 
 
 #####################################Utility functions####################################################
@@ -34,31 +33,34 @@ def authenticate(user,pw):
         return True
     return False
 
+def searchCookie(ID):
+    for user in users:
+        if users[user].get("cookie")==ID:
+            pageVars["currUser"] = user
+            break
+    
 
 ######################################Page Handlers Here###################################################
 def logoutHandler():
     try:
-        del activeSess[cookie["id"].value]
-        json.dump(activeSess,open("sessions","w"))
+        currUser = pageVars["currUser"]
+        del users[currUser]["cookie"]
+        profileUtils.writeFormat(users[currUser],open(static.STUD_DIR+currUser+"/profile.txt","w"))
     except:
         print ("No Active Session For Cookie")
     return loginHandler()
 def loginHandler():
     pageVars["page"] = arguments.getvalue("page")
+    pageVars["profile"] = arguments.getvalue("user")
     if pageVars["page"] == "logout":
         pageVars["page"] = "login"
-    pageVars["profile"] = arguments.getvalue("user")
     user = arguments.getvalue("username")
-    pw = arguments.getvalue("loginpassword")
+    pw = arguments.getvalue("loginpw")
     if (user and pw):
         if(authenticate(user,pw)):
-            for cookieid, username in activeSess.items():
-                if username == user:
-                    del activeSess[cookieid]
-            activeSess[cookie["id"].value]=user
-            json.dump(activeSess,open("sessions","w"))
-            pageVars["currUser"] = user
-            print (navHandler(arguments.getvalue("page")))
+            users[user]["cookie"] = cookieID 
+            profileUtils.writeFormat(users[user],open(static.STUD_DIR+user+"/profile.txt","w"))
+            print (navHandler())
             return
         else:
            pageVars["user"] = user
@@ -106,14 +108,14 @@ def aboutHandler():
     action = arguments.getvalue("action")
     if action:
         if action == "delete":
-            shutil.rmtree(STUD_DIR+currUser)
+            shutil.rmtree(static.STUD_DIR+currUser)
             return logoutHandler()
         elif action == "suspend":
             loginProf["suspend"] = "True"
         elif action == "unsuspend":
             loginProf["suspend"] = "False"
         elif action == "update":
-            for key in undisclosed: 
+            for key in static.undisclosed: 
                 if arguments.getvalue(key):
                     value = arguments.getvalue(key)
                     if key == "birthdate":
@@ -133,13 +135,13 @@ def aboutHandler():
                 else: 
                     pageVars["error"] = "Password is wrong format!"
 
-        profile = open(STUD_DIR+pageVars["currUser"]+"/profile.txt","w")
+        profile = open(static.STUD_DIR+pageVars["currUser"]+"/profile.txt","w")
         writeProf = loginProf.copy()
         del writeProf["photos"]
         del writeProf["avatar"]
         profileUtils.writeFormat(writeProf, profile)    
                 
-    for key in undisclosed:   
+    for key in static.undisclosed:   
         if key not in loginProf:
             loginProf[key] =""
         elif key == "birthdate":
@@ -150,7 +152,7 @@ def aboutHandler():
 def preferencesHandler():
     pageVars["title"] = "My Match Preferences"
     currUser = pageVars["currUser"]
-    pref = readUserPreferences(currUser)
+    pref = profileUtils.readUserPreferences(currUser)
     update = arguments.getvalue("update")
     if update:
         mini = arguments.getvalue("min")
@@ -169,14 +171,14 @@ def preferencesHandler():
                 if toAdd and toAdd not in pref[key]:
                     pref[key].append(toAdd.lower())
             except:
-                pref[key] = [arguments.getvalue("add")]
+                pref[key] = [arguments.getvalue("add").lower()]
         elif arguments.getvalue(key):
             try:
                 del pref[key][int(arguments.getvalue(key))]
             except:
                 pageVars["error"] = "Please delete a valid item"
-    prefFile = open(STUD_DIR+pageVars["currUser"]+"/preferences.txt","w")
-    writePreferences(pref, prefFile) 
+    prefFile = open("students/"+pageVars["currUser"]+"/preferences.txt","w")
+    profileUtils.writePreferences(pref, prefFile) 
     if "age" in pref: 
         pref["agemin"] = pref["age"][0]
         pref["agemax"] = pref["age"][1]
@@ -193,7 +195,7 @@ def preferencesHandler():
 def interestHandler():
     pageVars["title"] = "My Interests"
     loginProf = users[pageVars["currUser"]]
-    for key in listKeys:
+    for key in static.listKeys:
         if arguments.getvalue(key):
             if arguments.getvalue(key) == "add":
                 try:
@@ -204,7 +206,7 @@ def interestHandler():
                     loginProf[key] = [arguments.getvalue("add")]
             else:
                 del loginProf[key][int(arguments.getvalue(key))]
-            profile = open(STUD_DIR+pageVars["currUser"]+"/profile.txt","w")
+            profile = open(static.STUD_DIR+pageVars["currUser"]+"/profile.txt","w")
             writeProf = loginProf.copy()
             del writeProf["photos"]
             del writeProf["avatar"]
@@ -258,7 +260,7 @@ def listHandler():
         if x > len(userKeys) or x < 0:break;
         key = userKeys[x]
         users[key]["url"] = "?page=detail&user="+key
-        template += Template(cardTemplate).safe_substitute(users[key]) 
+        template += Template(static.cardTemplate).safe_substitute(users[key]) 
     if start >= end:
         start = end-1
     nextrng = str(rng +1) if end<len(userKeys) else str(rng)
@@ -305,6 +307,7 @@ def matchHandler():
     pageVars["template"]+= '<form action="love2041.cgi?page=match" method="post">'
     global userKeys
     userKeys = sorted(userKeys,key=lambda key: users[key]["match"],reverse=True)
+    userKeys.remove(pageVars["currUser"])
     return listHandler()
 def searchHandler():
     pageVars["title"] = "Search"
@@ -344,6 +347,7 @@ pageHandler={"images":imagesHandler,"interests":interestHandler,"preferences":pr
 
 ################handles navigation and page logic#############################################################
 def navHandler():
+    searchCookie(cookieID)
     currUser = pageVars["currUser"] 
     page = arguments.getvalue("page")
 
@@ -351,13 +355,15 @@ def navHandler():
     if page not in pageHandler: page = None;
     
     if currUser:
-        if (not page or page == "register" or page == "login" or page == "logout" or page == "delete"):
+        if (not page or page == "register" or page == "login"):
             page="browse";
     elif page != "register":
         page="login"
-
-    if currUser and page in matchPages:
-       users =  profileUtils.postProcess(users)
+    
+    #Post Process if we want to display the data
+    if currUser and page in static.matchPages:
+        global users
+        users = profileUtils.postProcess(users,currUser)
     page = pageHandler[page]()
     if page in static.template:
         with open("templates/"+static.template[page],'r') as file:

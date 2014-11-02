@@ -1,16 +1,15 @@
 import glob,re
-
+from datetime import date
 import static
 
-STUD_DIR = "students/"
 
 
 
 def readAllProfiles():
     users = {}
     userKeys = []
-    for folder in glob.glob(STUD_DIR+"*"):
-        username = re.sub(STUD_DIR,"",folder)
+    for folder in glob.glob(static.STUD_DIR+"*"):
+        username = re.sub(static.STUD_DIR,"",folder)
         users[username] = readUserProfile(username)
 
     for user in users:
@@ -19,26 +18,25 @@ def readAllProfiles():
     return (users,userKeys) 
 
 #Match Making Algorithm generates a score for each user based on preferences
-def matchMake(profile):
-    currUser = pageVars["currUser"]
+def matchMake(profile,users,currUser):
     loginProf = users[currUser]
     match = 0
     if currUser == profile["username"]:return "0"
     for key in static.listKeys:
        set1 = set(loginProf.get(key,[]))
        set2 = set(profile.get(key,[]))
-       match += len(set1 & set2)*10
+       match += len(set1 & set2)*20
     
     pref = readUserPreferences(currUser)
     criteria = pref.keys()
     if "age" in criteria:
-        if int(pref["age"][0]) <= int(profile["age"]) <= int(pref["age"][1]):match+=50
+        if int(pref["age"][0]) <= int(profile["age"]) <= int(pref["age"][1]):match+=100
         else:
-            age = profile["age"]
-            match += 50 - min(abs(int(pref["age"][0])-age),abs(int(pref["age"][1])-age))
+            age = int(profile["age"])
+            match += 100 - min(abs(int(pref["age"][0])-age),abs(int(pref["age"][1])-age))
     else:
         try:
-            match += max (50 - abs(loginProf["age"] - profile["age"]) ,0)
+            match += max (100 - abs(loginProf["age"] - profile["age"]) ,0)
         except:
             match = match
     if "height" in criteria:
@@ -53,7 +51,7 @@ def matchMake(profile):
     return match
 
 #Alter data for display to be human readable
-def postProcess(users):
+def postProcess(users,currUser):
     for key in users:
         profile = users[key]
         try:
@@ -64,20 +62,19 @@ def postProcess(users):
             profile["age"] = today.year - born.year - ((today.month, today.day) < (born.month, born.day))
         except:
             profile["age"] = -1
-        
-        profile["match"] = matchMake(profile)
+        profile["match"] = matchMake(profile,users,currUser)
          
-        for key in undisclosed:
+        for key in static.undisclosed:
             if key not in profile:profile[key] = "Not Provided"
     
         profile["gender"] = profile["gender"][0].upper() + profile["gender"][1:]
         profile["hair_colour"] = profile["hair_colour"].capitalize()
         
         if profile["age"] < 0:profile["age"] = "Not Provided";
-        return users
+    return users
 #read in all user profiles and store as dict
 def readUserProfile(username):
-    dir = STUD_DIR+username+"/"
+    dir = static.STUD_DIR+username+"/"
     profile = {"avatar":dir+"profile.jpg" ,"photos":[],}
     for file in glob.glob(dir+"photo*"):
         profile["photos"].append(file)
@@ -113,7 +110,7 @@ def readDataFormat(lines):
 #read in user preferences
 def readUserPreferences(username):
     data={}
-    with open(STUD_DIR+username+"/preferences.txt","r") as pref:
+    with open(static.STUD_DIR+username+"/preferences.txt","r") as pref:
         lines = pref.readlines()
         x=0 
         while (x<len(lines)):
